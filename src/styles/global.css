@@ -80,6 +80,18 @@ pre {
   border: 1px solid var(--line);
   background: var(--code-bg) !important;
 }
+.mermaid-diagram {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: var(--code-bg);
+}
+.mermaid-diagram svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
 code { font-family: inherit; }
 :not(pre) > code {
   padding: .1rem .3rem;

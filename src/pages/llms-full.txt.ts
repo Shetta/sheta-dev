@@ -13,7 +13,7 @@ export const GET: APIRoute = async () => {
     post.data.updated ? `Updated: ${post.data.updated.toISOString()}` : '',
     `Tags: ${post.data.tags.join(', ') || 'none'}`,
     '',
-    post.body.trim(),
+    post.body?.trim() ?? '',
     '',
     '---',
     ''

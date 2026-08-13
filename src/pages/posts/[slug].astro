@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
+import MermaidDiagrams from '../../components/MermaidDiagrams.astro';
 import Base from '../../layouts/Base.astro';
 
 export async function getStaticPaths() {
@@ -33,4 +34,5 @@ const updated = post.data.updated?.toISOString().slice(0, 10);
     </div>
     <Content />
   </article>
+  <MermaidDiagrams />
 </Base>
