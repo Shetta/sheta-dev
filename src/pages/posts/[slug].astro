@@ -1,0 +1,36 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const published = post.data.published.toISOString().slice(0, 10);
+const updated = post.data.updated?.toISOString().slice(0, 10);
+---
+<Base
+  title={post.data.title}
+  description={post.data.description}
+  markdownUrl={`/posts/${post.id}.md`}
+>
+  <article>
+    <h1>{post.data.title}</h1>
+    <div class="meta">
+      <div>Published {published}{updated && ` · Updated ${updated}`}</div>
+      <div><a href={`/posts/${post.id}.md`}>Markdown</a></div>
+      {post.data.tags.length > 0 && (
+        <div class="tags">
+          {post.data.tags.map((tag) => <span class="tag">#{tag}</span>)}
+        </div>
+      )}
+    </div>
+    <Content />
+  </article>
+</Base>

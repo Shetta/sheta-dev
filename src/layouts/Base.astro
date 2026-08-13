@@ -1,0 +1,45 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  markdownUrl?: string;
+}
+
+const {
+  title = 'Ahmed Sheta',
+  description = 'Notes on software, distributed systems, data, and things I am learning.',
+  markdownUrl
+} = Astro.props;
+
+const fullTitle = title === 'Ahmed Sheta' ? title : `${title} — Ahmed Sheta`;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <link rel="alternate" type="application/rss+xml" title="Ahmed Sheta" href="/rss.xml" />
+    {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} />}
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="header-name" href="/">sheta.dev</a>
+      <nav aria-label="Primary">
+        <a href="/posts">posts</a>
+        <a href="/about">about</a>
+        <a href="/llms.txt">llms.txt</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <span>Ahmed Sheta · <a href="/rss.xml">RSS</a> · <a href="/sitemap.xml">sitemap</a></span>
+    </footer>
+  </body>
+</html>
