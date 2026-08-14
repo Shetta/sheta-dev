@@ -56,22 +56,28 @@ The connector source options [accept `kinesis.streamName`](https://github.com/aw
 The team moved the Spark job to Account A, beside the source. The connector read a same-account stream with enhanced fan-out. Spark wrote to the Account B stream by ARN through the AWS SDK. Account B granted two Kinesis actions to one EMR job role in Account A.
 
 ```mermaid
-flowchart LR
+architecture-beta
   accTitle: Cross-account Kinesis streaming with EMR
   accDescr: EMR Spark reads the source stream in the producer account and writes by ARN to the analytics stream in another account. DynamoDB and S3 store connector and Spark state.
 
-  subgraph producer[Producer account]
-    source[Kinesis source stream] --> emr[EMR Spark]
-    checkpoint[DynamoDB connector state] -.-> emr
-    sparkstate[S3 Spark checkpoint] -.-> emr
-  end
-  subgraph analytics[Analytics account]
-    destination[Kinesis analytics stream] --> glue[Glue Streaming]
-  end
-  emr -->|AWS SDK write by ARN| destination
+  group producer(cloud)[Producer account]
+  group analytics(cloud)[Analytics account]
+
+  service source(logos:aws-kinesis)[Kinesis source stream] in producer
+  service emr(logos:apache-spark)[EMR Spark] in producer
+  service checkpoint(logos:aws-dynamodb)[DynamoDB connector state] in producer
+  service sparkstate(logos:aws-s3)[S3 Spark checkpoint] in producer
+  service destination(logos:aws-kinesis)[Kinesis analytics stream] in analytics
+  service glue(logos:aws-glue)[AWS Glue Streaming] in analytics
+
+  source:R --> L:emr
+  checkpoint:T --> B:emr
+  sparkstate:T --> B:emr
+  emr:R --> L:destination
+  destination:R --> L:glue
 ```
 
-*Figure 1. Spark stays beside the source stream. The SDK writer crosses the account boundary.*
+*Figure 1. Spark stays beside the source stream and reads it with enhanced fan-out. DynamoDB stores connector state, S3 stores Spark checkpoints, and the SDK writer crosses the account boundary by destination stream ARN before Glue consumes the records.*
 
 EMR on EKS fit the company in the story because its platform team already operated an EKS cluster. The team registered a namespace as an EMR virtual cluster and assigned the streaming job its own execution role. An organization without that Kubernetes platform could run the same application on a long-running EMR on EC2 cluster.
 

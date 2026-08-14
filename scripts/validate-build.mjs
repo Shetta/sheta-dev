@@ -70,6 +70,13 @@ for (const slug of postDirectories) {
   assert(files.sitemap.includes(`<loc>${canonical}</loc>`), `${slug} is missing from the sitemap`);
 }
 
+const architecturePost = await read('posts/the-replay-that-outgrew-the-cross-account-relay.md');
+for (const icon of ['aws-kinesis', 'apache-spark', 'aws-dynamodb', 'aws-s3', 'aws-glue']) {
+  assert(architecturePost.includes(`logos:${icon}`), `architecture post is missing the ${icon} icon`);
+}
+assert(architecturePost.includes('[Kinesis source stream]'), 'Kinesis icon is missing its text label');
+assert(architecturePost.includes('[EMR Spark]'), 'EMR Spark icon is missing its text label');
+
 for (const [page, html] of htmlDocuments) {
   const localLinks = [...html.matchAll(/(?:href|src)="(\/[^"#?]*)/g)]
     .map((match) => match[1]);
