@@ -1,14 +1,15 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { siteUrl } from '../lib/site';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ site }) => {
   const posts = (await getCollection('posts', ({ data }) => !data.draft))
     .sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
 
   const sections = posts.flatMap((post) => [
     `# ${post.data.title}`,
     '',
-    `Canonical: https://sheta.dev/posts/${post.id}`,
+    `Canonical: ${siteUrl(site, `/posts/${post.id}/`)}`,
     `Published: ${post.data.published.toISOString()}`,
     post.data.updated ? `Updated: ${post.data.updated.toISOString()}` : '',
     `Tags: ${post.data.tags.join(', ') || 'none'}`,

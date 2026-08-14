@@ -24,7 +24,10 @@ const updated = post.data.updated?.toISOString().slice(0, 10);
   <article>
     <h1>{post.data.title}</h1>
     <div class="meta">
-      <div>Published {published}{updated && ` · Updated ${updated}`}</div>
+      <div>
+        Published <time datetime={post.data.published.toISOString()}>{published}</time>
+        {updated && <> · Updated <time datetime={post.data.updated?.toISOString()}>{updated}</time></>}
+      </div>
       <div><a href={`/posts/${post.id}.md`}>Markdown</a></div>
       {post.data.tags.length > 0 && (
         <div class="tags">

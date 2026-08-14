@@ -1,0 +1,79 @@
+import { access, readFile, readdir } from 'node:fs/promises';
+import { join } from 'node:path';
+
+const dist = new URL('../dist/', import.meta.url);
+const canonicalHost = 'https://blog.sheta.dev';
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+async function read(pathname) {
+  return readFile(new URL(pathname, dist), 'utf8');
+}
+
+const files = {
+  home: await read('index.html'),
+  about: await read('about/index.html'),
+  posts: await read('posts/index.html'),
+  rss: await read('rss.xml'),
+  sitemap: await read('sitemap.xml'),
+  robots: await read('robots.txt'),
+  llms: await read('llms.txt'),
+  corpus: await read('llms-full.txt'),
+  notFound: await read('404.html')
+};
+const htmlDocuments = [
+  ['home', files.home],
+  ['about', files.about],
+  ['posts', files.posts],
+  ['404', files.notFound]
+];
+
+for (const [name, body] of Object.entries(files)) {
+  assert(!body.includes('https://sheta.dev'), `${name} contains the inactive apex host`);
+}
+
+assert(files.home.includes('>blog.sheta.dev</a>'), 'masthead does not identify the blog host');
+assert(files.home.includes(`rel="canonical" href="${canonicalHost}/"`), 'home canonical is missing');
+assert(files.about.includes(`rel="canonical" href="${canonicalHost}/about/"`), 'about canonical is wrong');
+assert(files.posts.includes(`rel="canonical" href="${canonicalHost}/posts/"`), 'posts canonical is wrong');
+assert(files.notFound.includes('name="robots" content="noindex"'), '404 page must be noindex');
+
+assert(files.rss.includes('<rss version="2.0"'), 'RSS root is missing');
+assert(files.rss.includes(`atom:link href="${canonicalHost}/rss.xml"`), 'RSS self link is wrong');
+assert(files.rss.includes(`<link>${canonicalHost}/</link>`), 'RSS home link is wrong');
+
+const sitemapUrls = [...files.sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
+assert(sitemapUrls.length >= 4, 'sitemap does not contain the expected pages');
+assert(sitemapUrls.every((url) => url.startsWith(`${canonicalHost}/`)), 'sitemap contains another host');
+assert(sitemapUrls.every((url) => !url.endsWith('.md')), 'sitemap contains Markdown alternates');
+assert(files.robots.includes(`Sitemap: ${canonicalHost}/sitemap.xml`), 'robots.txt points to the wrong sitemap');
+
+const postRoot = new URL('posts/', dist);
+const postDirectories = (await readdir(postRoot, { withFileTypes: true }))
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name);
+
+for (const slug of postDirectories) {
+  const html = await read(join('posts', slug, 'index.html'));
+  const canonical = `${canonicalHost}/posts/${slug}/`;
+  htmlDocuments.push([slug, html]);
+  assert(html.includes(`rel="canonical" href="${canonical}"`), `${slug} canonical is wrong`);
+  assert(files.rss.includes(`<link>${canonical}</link>`), `${slug} is missing from RSS`);
+  assert(files.sitemap.includes(`<loc>${canonical}</loc>`), `${slug} is missing from the sitemap`);
+}
+
+for (const [page, html] of htmlDocuments) {
+  const localLinks = [...html.matchAll(/(?:href|src)="(\/[^"#?]*)/g)]
+    .map((match) => match[1]);
+
+  for (const pathname of localLinks) {
+    const target = pathname.endsWith('/') ? `${pathname}index.html` : pathname;
+    await access(new URL(target.replace(/^\//, ''), dist)).catch(() => {
+      throw new Error(`${page} links to missing asset ${pathname}`);
+    });
+  }
+}
+
+console.log(`Validated ${postDirectories.length} post, local links, RSS, sitemap, robots.txt, canonicals, and 404 output.`);

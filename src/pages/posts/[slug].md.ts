@@ -1,5 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { siteUrl } from '../../lib/site';
 
 export const getStaticPaths = (async () => {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -13,8 +14,8 @@ function yamlString(value: string) {
   return JSON.stringify(value);
 }
 
-export const GET: APIRoute = async ({ props }) => {
-  const { post } = props as any;
+export const GET: APIRoute = async ({ props, site }) => {
+  const { post } = props as { post: CollectionEntry<'posts'> };
   const body = [
     '---',
     `title: ${yamlString(post.data.title)}`,
@@ -22,10 +23,10 @@ export const GET: APIRoute = async ({ props }) => {
     `published: ${post.data.published.toISOString()}`,
     ...(post.data.updated ? [`updated: ${post.data.updated.toISOString()}`] : []),
     `tags: ${JSON.stringify(post.data.tags)}`,
-    `canonical: https://sheta.dev/posts/${post.id}`,
+    `canonical: ${siteUrl(site, `/posts/${post.id}/`)}`,
     '---',
     '',
-    post.body.trim(),
+    post.body?.trim() ?? '',
     ''
   ].join('\n');
 

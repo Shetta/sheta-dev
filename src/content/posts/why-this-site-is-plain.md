@@ -1,38 +1,38 @@
 ---
 title: "Why this site is plain"
-description: "A blog should optimize for ideas, URLs, text, and code—not decoration."
+description: "A plain blog built for durable ideas, stable URLs, readable text, and copyable code."
 published: 2026-08-13
 tags: [meta, web]
 ---
 
-The point of this site is not to demonstrate a frontend framework. It is to preserve ideas in a form that remains useful.
+This site preserves technical ideas in plain text, stable URLs, and copyable code.
 
-That means a few constraints:
+I work within a few constraints:
 
-- text should load quickly;
-- URLs should be stable and unsurprising;
-- code should be copyable;
-- JavaScript should be optional rather than structural;
-- every post should have a Markdown representation;
-- software agents should be able to retrieve the same writing without scraping presentation markup.
+- pages must load fast;
+- URLs must stay stable;
+- readers must be able to copy code;
+- client-side JavaScript must remain optional;
+- each post must have a Markdown representation;
+- software agents must receive the writing without scraping presentation markup.
 
 For a person, this URL returns HTML:
 
 ```text
-https://sheta.dev/posts/why-this-site-is-plain
+https://blog.sheta.dev/posts/why-this-site-is-plain/
 ```
 
 For an agent, the same URL can return Markdown:
 
 ```bash
 curl -H "Accept: text/markdown" \
-  https://sheta.dev/posts/why-this-site-is-plain
+  https://blog.sheta.dev/posts/why-this-site-is-plain/
 ```
 
 The explicit Markdown form is also available:
 
 ```text
-https://sheta.dev/posts/why-this-site-is-plain.md
+https://blog.sheta.dev/posts/why-this-site-is-plain.md
 ```
 
-If the writing is useful, the site has done its job.
+I judge the site by whether the writing stays useful.

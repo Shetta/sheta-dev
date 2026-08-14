@@ -1,6 +1,6 @@
-# sheta.dev
+# blog.sheta.dev
 
-Minimal, text-first Astro blog for `https://sheta.dev` with first-class Markdown delivery for software agents.
+Text-first Astro blog for `https://blog.sheta.dev` with Markdown delivery for software agents.
 
 ## Local development
 
@@ -19,44 +19,43 @@ npm run build
 
 The static site is emitted to `dist/`.
 
-## Cloudflare Pages
+## Cloudflare Workers
 
-Use:
+The repository deploys static assets and a small content-negotiation Worker with `wrangler.jsonc`.
 
-- Framework preset: **Astro**
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Production branch: `main`
-- Custom domain: `sheta.dev`
+```bash
+npm run build
+npx wrangler deploy
+```
 
-`public/_worker.js` is copied to the deployment root and performs content negotiation at the edge.
+The production custom domain is `blog.sheta.dev`. The Worker in `worker/index.js` serves Markdown when a post request includes `Accept: text/markdown`.
 
 ## Agent retrieval
 
 Human HTML:
 
 ```bash
-curl https://sheta.dev/posts/why-this-site-is-plain
+curl https://blog.sheta.dev/posts/why-this-site-is-plain/
 ```
 
 Same clean URL as Markdown:
 
 ```bash
 curl -H "Accept: text/markdown" \
-  https://sheta.dev/posts/why-this-site-is-plain
+  https://blog.sheta.dev/posts/why-this-site-is-plain/
 ```
 
 Explicit Markdown:
 
 ```bash
-curl https://sheta.dev/posts/why-this-site-is-plain.md
+curl https://blog.sheta.dev/posts/why-this-site-is-plain.md
 ```
 
 Corpus indexes:
 
 ```bash
-curl https://sheta.dev/llms.txt
-curl https://sheta.dev/llms-full.txt
+curl https://blog.sheta.dev/llms.txt
+curl https://blog.sheta.dev/llms-full.txt
 ```
 
 ## Add a post
@@ -74,7 +73,7 @@ tags: [systems]
 Write Markdown here.
 ```
 
-The build automatically creates both `/posts/my-post` and `/posts/my-post.md`, then adds the post to `/llms.txt`, `/llms-full.txt`, RSS, and the sitemap.
+The build creates `/posts/my-post/` and `/posts/my-post.md`, then adds the post to `/llms.txt`, `/llms-full.txt`, RSS, and the sitemap.
 
 ## Add a Mermaid diagram
 

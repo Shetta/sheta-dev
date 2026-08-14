@@ -1,26 +1,28 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from '../lib/site';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ site }) => {
   const posts = (await getCollection('posts', ({ data }) => !data.draft))
     .sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf());
+  const rootUrl = siteUrl(site).replace(/\/$/, '');
 
   const body = [
-    '# sheta.dev',
+    `# ${SITE_NAME}`,
     '',
-    '> Technical notes by Ahmed Sheta on software, distributed systems, data infrastructure, reliability, and experiments.',
+    `> ${SITE_DESCRIPTION}`,
     '',
     '## Retrieval',
     '',
-    '- Human pages: https://sheta.dev/posts/<slug>',
-    '- Markdown: https://sheta.dev/posts/<slug>.md',
+    `- Human pages: ${rootUrl}/posts/<slug>/`,
+    `- Markdown: ${rootUrl}/posts/<slug>.md`,
     '- Content negotiation: send `Accept: text/markdown` to the human URL',
-    '- Complete corpus: https://sheta.dev/llms-full.txt',
-    '- RSS: https://sheta.dev/rss.xml',
+    `- Complete corpus: ${siteUrl(site, '/llms-full.txt')}`,
+    `- RSS: ${siteUrl(site, '/rss.xml')}`,
     '',
     '## Posts',
     '',
-    ...posts.map((post) => `- [${post.data.title}](https://sheta.dev/posts/${post.id}.md): ${post.data.description}`),
+    ...posts.map((post) => `- [${post.data.title}](${siteUrl(site, `/posts/${post.id}.md`)}): ${post.data.description}`),
     ''
   ].join('\n');
 
