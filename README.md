@@ -95,22 +95,4 @@ flowchart LR
 ```
 ````
 
-Use AWS service icons in Mermaid architecture diagrams with the registered Iconify `logos` pack:
-
-````text
-```mermaid
-architecture-beta
-  group aws(cloud)[AWS]
-
-  service api(logos:aws-api-gateway)[API Gateway] in aws
-  service queue(logos:aws-sqs)[SQS] in aws
-  service worker(logos:aws-lambda)[Lambda] in aws
-  service store(logos:aws-dynamodb)[DynamoDB] in aws
-
-  api:R --> L:queue
-  queue:R --> L:worker
-  worker:R --> L:store
-```
-````
-
-The browser loads pinned Mermaid and Iconify modules from jsDelivr. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block.
+The browser loads a pinned Mermaid module from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block as a fallback.
