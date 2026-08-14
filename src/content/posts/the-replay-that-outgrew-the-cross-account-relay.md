@@ -1,5 +1,5 @@
 ---
-title: "The Replay That Outgrew the Cross-Account Relay"
+title: "The replay that outgrew the cross-account relay"
 description: "A production story about moving a high-volume Kinesis feed across AWS accounts with Amazon EMR on EKS or EC2."
 published: 2026-08-13
 tags: [aws, emr, kinesis, spark, eks, architecture]
@@ -11,7 +11,7 @@ The cross-account relay ran at its concurrency limit. Fresh events had joined th
 
 The incident commander pulled the data-platform team into the call. One engineer opened the Lambda graph. Another opened the shard map. The source stream had 480 shards after the last split. Ordinary traffic stayed within relay capacity. The replay plus parsing and enrichment work exceeded it.
 
-"Which part is slow?" the commander asked.
+> "Which part is slow?" the commander asked.
 
 The dashboard had no answer.
 
@@ -57,6 +57,9 @@ The team moved the Spark job to Account A, beside the source. The connector read
 
 ```mermaid
 architecture-beta
+  accTitle: Cross-account Kinesis streaming with EMR
+  accDescr: EMR Spark reads the source stream in the producer account and writes by ARN to the analytics stream in another account. DynamoDB and S3 store connector and Spark state.
+
   group producer(cloud)[Producer account]
   group analytics(cloud)[Analytics account]
 
@@ -73,6 +76,8 @@ architecture-beta
   emr:R --> L:destination
   destination:R --> L:glue
 ```
+
+*Figure 1. Spark stays beside the source stream. The SDK writer crosses the account boundary.*
 
 EMR on EKS fit the company in the story because its platform team already operated an EKS cluster. The team registered a namespace as an EMR virtual cluster and assigned the streaming job its own execution role. An organization without that Kubernetes platform could run the same application on a long-running EMR on EC2 cluster.
 
