@@ -7,22 +7,32 @@
         'https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.esm.min.mjs'
       );
 
-      mermaid.registerIconPacks([
-        {
-          name: 'logos',
-          loader: async () => {
-            const response = await fetch(
-              'https://cdn.jsdelivr.net/npm/@iconify-json/logos@1.2.12/icons.json'
-            );
+      const iconNames = new Set();
 
-            if (!response.ok) {
-              throw new Error(`Icon request failed with status ${response.status}`);
-            }
-
-            return response.json();
-          }
+      for (const code of blocks) {
+        for (const match of code.textContent?.matchAll(/\blogos:([a-z0-9]+(?:-[a-z0-9]+)*)\b/g) ?? []) {
+          iconNames.add(match[1]);
         }
-      ]);
+      }
+
+      if (iconNames.size > 0) {
+        mermaid.registerIconPacks([
+          {
+            name: 'logos',
+            loader: async () => {
+              const response = await fetch(
+                `https://api.iconify.design/logos.json?icons=${[...iconNames].join(',')}`
+              );
+
+              if (!response.ok) {
+                throw new Error(`Icon request failed with status ${response.status}`);
+              }
+
+              return response.json();
+            }
+          }
+        ]);
+      }
 
       mermaid.initialize({
         startOnLoad: false,
@@ -41,14 +51,17 @@
         diagram.hidden = true;
         fallback.insertAdjacentElement('afterend', diagram);
 
+        const renderId = `mermaid-diagram-${index}`;
+
         try {
-          const { svg, bindFunctions } = await mermaid.render(`mermaid-diagram-${index}`, source);
+          const { svg, bindFunctions } = await mermaid.render(renderId, source);
           diagram.innerHTML = svg;
           bindFunctions?.(diagram);
           diagram.hidden = false;
           fallback.hidden = true;
         } catch (error) {
           diagram.remove();
+          document.getElementById(`d${renderId}`)?.remove();
           console.error('Mermaid could not render a diagram.', error);
         }
       }

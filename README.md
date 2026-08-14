@@ -108,4 +108,4 @@ architecture-beta
 ```
 ````
 
-The browser loads pinned Mermaid and Iconify modules from jsDelivr. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block.
+The browser loads a pinned Mermaid module from jsDelivr and requests the referenced icons from the Iconify API. Add an `accTitle` and `accDescr` when the Mermaid diagram type accepts them. Add a text description before an `architecture-beta` block. If Mermaid does not load or cannot render a diagram, the page shows its source block.
