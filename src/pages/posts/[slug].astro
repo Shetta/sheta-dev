@@ -12,14 +12,35 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const published = post.data.published.toISOString().slice(0, 10);
 const updated = post.data.updated?.toISOString().slice(0, 10);
+const canonicalUrl = new URL(`/posts/${post.id}/`, Astro.site).toString();
+const prose = (post.body ?? '').replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '');
+const readingMinutes = Math.max(1, Math.ceil(prose.trim().split(/\s+/).length / 220));
+const toc = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: published,
+  dateModified: updated ?? published,
+  mainEntityOfPage: canonicalUrl,
+  url: canonicalUrl,
+  author: { '@type': 'Person', name: 'Ahmed Sheta', url: new URL('/about/', Astro.site).toString() },
+  keywords: post.data.tags
+};
 ---
 <Base
   title={post.data.title}
   description={post.data.description}
   markdownUrl={`/posts/${post.id}.md`}
+  type="article"
+  publishedTime={post.data.published.toISOString()}
+  modifiedTime={(post.data.updated ?? post.data.published).toISOString()}
+  tags={post.data.tags}
+  jsonLd={jsonLd}
 >
   <article>
     <h1>{post.data.title}</h1>
@@ -28,14 +49,53 @@ const updated = post.data.updated?.toISOString().slice(0, 10);
         Published <time datetime={post.data.published.toISOString()}>{published}</time>
         {updated && <> · Updated <time datetime={post.data.updated?.toISOString()}>{updated}</time></>}
       </div>
-      <div><a href={`/posts/${post.id}.md`}>Markdown</a></div>
+      <div>{readingMinutes} min read · <a href={`/posts/${post.id}.md`}>Markdown</a></div>
       {post.data.tags.length > 0 && (
         <div class="tags">
           {post.data.tags.map((tag) => <span class="tag">#{tag}</span>)}
         </div>
       )}
     </div>
+    {toc.length >= 4 && (
+      <nav class="table-of-contents" aria-labelledby="contents-heading">
+        <h2 id="contents-heading">Contents</h2>
+        <ol>
+          {toc.map((heading) => <li class={`toc-depth-${heading.depth}`}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
+        </ol>
+      </nav>
+    )}
     <Content />
   </article>
   <MermaidDiagrams />
+  <script>
+    document.querySelectorAll<HTMLElement>('article h2[id], article h3[id]').forEach((heading) => {
+      const permalink = document.createElement('a');
+      permalink.className = 'heading-permalink';
+      permalink.href = `#${heading.id}`;
+      permalink.setAttribute('aria-label', `Permalink to ${heading.textContent ?? 'this section'}`);
+      permalink.textContent = '#';
+      heading.append(permalink);
+    });
+    document.querySelectorAll('article pre').forEach((pre) => {
+      if (pre.querySelector('code.language-mermaid')) return;
+      const code = pre.querySelector('code');
+      if (!code) return;
+      const language = [...code.classList].find((name) => name.startsWith('language-'))?.slice(9) ?? 'text';
+      const toolbar = document.createElement('div');
+      toolbar.className = 'code-toolbar';
+      const label = document.createElement('span');
+      label.textContent = language;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Copy';
+      button.setAttribute('aria-label', `Copy ${language} code`);
+      button.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(code.textContent ?? '');
+        button.textContent = 'Copied';
+        window.setTimeout(() => { button.textContent = 'Copy'; }, 1500);
+      });
+      toolbar.append(label, button);
+      pre.before(toolbar);
+    });
+  </script>
 </Base>

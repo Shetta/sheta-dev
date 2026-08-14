@@ -98,9 +98,14 @@ if (blocks.length > 0) {
             diagram = document.createElement('div');
             diagram.className = 'mermaid-diagram';
             diagram.setAttribute('role', 'img');
-            diagram.setAttribute('aria-label', 'Diagram. A text version follows if rendering fails.');
             fallback.insertAdjacentElement('afterend', diagram);
           }
+
+          const description = source.match(/^\s*accDescr:\s*(.+)$/m)?.[1]?.trim();
+          diagram.setAttribute(
+            'aria-label',
+            description || 'Architecture diagram. The Mermaid source is available when rendering fails.'
+          );
 
           try {
             const id = `mermaid-diagram-${index}-${renderNumber++}`;

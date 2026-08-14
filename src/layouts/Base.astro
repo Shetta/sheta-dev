@@ -8,13 +8,23 @@ interface Props {
   description?: string;
   markdownUrl?: string;
   noIndex?: boolean;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  tags?: string[];
+  jsonLd?: Record<string, unknown>;
 }
 
 const {
   title = SITE_TITLE,
   description = SITE_DESCRIPTION,
   markdownUrl,
-  noIndex = false
+  noIndex = false,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  tags = [],
+  jsonLd
 } = Astro.props;
 
 const fullTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
@@ -35,10 +45,18 @@ const markdownAbsoluteUrl = markdownUrl ? siteUrl(Astro.site, markdownUrl) : und
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={rssUrl} />
     {markdownAbsoluteUrl && <link rel="alternate" type="text/markdown" href={markdownAbsoluteUrl} />}
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={type} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
+    {type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {type === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {type === 'article' && <meta property="article:author" content="Ahmed Sheta" />}
+    {type === 'article' && tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    {jsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />}
     <script is:inline>
       const savedTheme = localStorage.getItem('colour-theme');
       if (savedTheme) document.documentElement.dataset.theme = savedTheme;
