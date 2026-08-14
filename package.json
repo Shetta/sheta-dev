@@ -3,14 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "social-card": "node scripts/generate-social-card.mjs",
+    "predev": "npm run social-card",
     "dev": "astro dev",
+    "prebuild": "npm run social-card",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
     "validate": "npm run check && npm run build && node scripts/validate-build.mjs && node scripts/validate-worker.mjs"
   },
   "dependencies": {
-    "astro": "^7.2.2"
+    "astro": "^7.2.2",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",

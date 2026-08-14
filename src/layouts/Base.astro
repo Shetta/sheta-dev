@@ -13,6 +13,8 @@ interface Props {
   modifiedTime?: string;
   tags?: string[];
   jsonLd?: Record<string, unknown>;
+  image?: string;
+  imageAlt?: string;
 }
 
 const {
@@ -24,13 +26,16 @@ const {
   publishedTime,
   modifiedTime,
   tags = [],
-  jsonLd
+  jsonLd,
+  image = '/social-card.png',
+  imageAlt = `${SITE_TITLE} — ${SITE_DESCRIPTION}`
 } = Astro.props;
 
 const fullTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
 const canonicalUrl = siteUrl(Astro.site, Astro.url.pathname);
 const rssUrl = siteUrl(Astro.site, '/rss.xml');
 const markdownAbsoluteUrl = markdownUrl ? siteUrl(Astro.site, markdownUrl) : undefined;
+const imageUrl = siteUrl(Astro.site, image);
 ---
 <!doctype html>
 <html lang="en">
@@ -49,13 +54,23 @@ const markdownAbsoluteUrl = markdownUrl ? siteUrl(Astro.site, markdownUrl) : und
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:secure_url" content={imageUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
     {type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
     {type === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
     {type === 'article' && <meta property="article:author" content="Ahmed Sheta" />}
     {type === 'article' && tags.map((tag) => <meta property="article:tag" content={tag} />)}
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
     {jsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />}
     <script is:inline>
       const savedTheme = localStorage.getItem('colour-theme');

@@ -63,7 +63,10 @@ for (const slug of postDirectories) {
   assert(html.includes(`rel="canonical" href="${canonical}"`), `${slug} canonical is wrong`);
   assert(html.includes('<meta property="og:type" content="article">'), `${slug} article Open Graph type is missing`);
   assert(html.includes('property="article:published_time"'), `${slug} published metadata is missing`);
-  assert(html.includes('name="twitter:card" content="summary"'), `${slug} Twitter metadata is missing`);
+  assert(html.includes(`property="og:image" content="${canonicalHost}/social-card.png"`), `${slug} Open Graph image is missing`);
+  assert(html.includes('property="og:image:width" content="1200"'), `${slug} Open Graph image dimensions are missing`);
+  assert(html.includes('name="twitter:card" content="summary_large_image"'), `${slug} Twitter metadata is missing`);
+  assert(html.includes(`name="twitter:image" content="${canonicalHost}/social-card.png"`), `${slug} Twitter image is missing`);
   assert(html.includes('"@type":"BlogPosting"'), `${slug} BlogPosting JSON-LD is missing`);
   assert(html.includes('rel="alternate" type="text/markdown"'), `${slug} Markdown alternate is missing`);
   assert(files.rss.includes(`<link>${canonical}</link>`), `${slug} is missing from RSS`);
