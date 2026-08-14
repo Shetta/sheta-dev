@@ -3,6 +3,21 @@ const blocks = [...document.querySelectorAll('pre > code.language-mermaid')];
 if (blocks.length > 0) {
   import('https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.esm.min.mjs')
     .then(({ default: mermaid }) => {
+      mermaid.registerIconPacks([
+        {
+          name: 'logos',
+          loader: async () => {
+            const response = await fetch(
+              'https://cdn.jsdelivr.net/npm/@iconify-json/logos@1.2.12/icons.json'
+            );
+            if (!response.ok) {
+              throw new Error(`AWS icon request failed with status ${response.status}`);
+            }
+            return response.json();
+          }
+        }
+      ]);
+
       const appearances = {
         light: {
           darkMode: false,

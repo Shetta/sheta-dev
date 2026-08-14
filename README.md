@@ -95,4 +95,16 @@ flowchart LR
 ```
 ````
 
-The browser loads a pinned Mermaid module from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block as a fallback.
+Architecture diagrams can use the registered Iconify `logos` pack for real AWS service icons:
+
+````text
+```mermaid
+architecture-beta
+  group aws(cloud)[AWS]
+  service source(logos:aws-kinesis)[Kinesis] in aws
+  service job(logos:apache-spark)[EMR Spark] in aws
+  source:R --> L:job
+```
+````
+
+The browser loads pinned Mermaid and Iconify modules from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid or the AWS icon pack does not load, or a diagram cannot render, the page shows its source block as a fallback.
