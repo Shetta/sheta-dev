@@ -37,6 +37,7 @@ for (const [name, body] of Object.entries(files)) {
 assert(files.home.includes('>blog.sheta.dev</a>'), 'masthead does not identify the blog host');
 assert(files.home.includes(`rel="canonical" href="${canonicalHost}/"`), 'home canonical is missing');
 assert(files.about.includes(`rel="canonical" href="${canonicalHost}/about/"`), 'about canonical is wrong');
+assert(files.about.includes('"@type":"Person"'), 'about Person JSON-LD is missing');
 assert(files.posts.includes(`rel="canonical" href="${canonicalHost}/posts/"`), 'posts canonical is wrong');
 assert(files.notFound.includes('name="robots" content="noindex"'), '404 page must be noindex');
 
@@ -60,6 +61,11 @@ for (const slug of postDirectories) {
   const canonical = `${canonicalHost}/posts/${slug}/`;
   htmlDocuments.push([slug, html]);
   assert(html.includes(`rel="canonical" href="${canonical}"`), `${slug} canonical is wrong`);
+  assert(html.includes('<meta property="og:type" content="article">'), `${slug} article Open Graph type is missing`);
+  assert(html.includes('property="article:published_time"'), `${slug} published metadata is missing`);
+  assert(html.includes('name="twitter:card" content="summary"'), `${slug} Twitter metadata is missing`);
+  assert(html.includes('"@type":"BlogPosting"'), `${slug} BlogPosting JSON-LD is missing`);
+  assert(html.includes('rel="alternate" type="text/markdown"'), `${slug} Markdown alternate is missing`);
   assert(files.rss.includes(`<link>${canonical}</link>`), `${slug} is missing from RSS`);
   assert(files.sitemap.includes(`<loc>${canonical}</loc>`), `${slug} is missing from the sitemap`);
 }
