@@ -23,7 +23,7 @@ The static site is emitted to `dist/`.
 
 The colour-theme control supports system, light, dark, and high-contrast modes. Code highlighting ships with separate high-contrast light and dark palettes, so it does not rely on a dark palette in light mode.
 
-The “Read page aloud” control uses the browser's built-in Web Speech API. Readers can choose among the English voices installed in their browser or operating system; voices labelled natural, enhanced, premium, or neural are listed first. Voice availability and quality still depend on the reader's device. Speech is generated on the reader's device: it does not call the Worker, add a paid text-to-speech service, or consume additional Cloudflare requests beyond serving the page itself. A consistently neural cloud voice would require a separate text-to-speech provider and may add usage cost.
+The “Read page aloud” control uses the browser's built-in Web Speech API. It prefers a locally installed natural or enhanced English voice when one is available, then falls back to another device voice. Voice availability and quality depend on the reader's browser and operating system. Speech is generated on the reader's device: it does not call the Worker, add a paid text-to-speech service, or consume additional Cloudflare requests beyond serving the page itself.
 
 ## Cloudflare Workers
 

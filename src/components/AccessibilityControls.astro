@@ -8,8 +8,6 @@
   </select>
   <button id="read-page" type="button" aria-pressed="false">Read page aloud</button>
   <button id="stop-reading" type="button" hidden>Stop reading</button>
-  <label id="voice-label" for="reading-voice" hidden>Voice</label>
-  <select id="reading-voice" hidden></select>
   <span id="speech-status" class="visually-hidden" role="status" aria-live="polite"></span>
 </aside>
 
@@ -18,8 +16,6 @@
   const readButton = document.querySelector<HTMLButtonElement>('#read-page');
   const stopButton = document.querySelector<HTMLButtonElement>('#stop-reading');
   const status = document.querySelector<HTMLElement>('#speech-status');
-  const voiceLabel = document.querySelector<HTMLLabelElement>('#voice-label');
-  const voiceSelect = document.querySelector<HTMLSelectElement>('#reading-voice');
   const storageKey = 'colour-theme';
 
   if (theme) {
@@ -30,39 +26,12 @@
       document.documentElement.dataset.theme = selected;
       if (selected === 'system') localStorage.removeItem(storageKey);
       else localStorage.setItem(storageKey, selected);
-      document.dispatchEvent(new CustomEvent('colour-theme-change'));
     });
   }
 
   if (!('speechSynthesis' in window)) {
     readButton?.setAttribute('hidden', '');
-  } else if (readButton && stopButton && status && voiceSelect && voiceLabel) {
-    let voices: SpeechSynthesisVoice[] = [];
-    const naturalVoicePattern = /natural|enhanced|premium|neural|siri|google uk english/i;
-    const loadVoices = () => {
-      voices = speechSynthesis.getVoices()
-        .filter((voice) => voice.lang.toLowerCase().startsWith('en'))
-        .sort((a, b) => Number(naturalVoicePattern.test(b.name)) - Number(naturalVoicePattern.test(a.name)));
-      voiceSelect.replaceChildren(...voices.map((voice, index) => {
-        const option = document.createElement('option');
-        option.value = String(index);
-        option.textContent = `${voice.name} (${voice.lang})${naturalVoicePattern.test(voice.name) ? ' — natural' : ''}`;
-        return option;
-      }));
-      const savedVoice = localStorage.getItem('reading-voice');
-      const savedIndex = voices.findIndex((voice) => voice.voiceURI === savedVoice);
-      voiceSelect.value = String(savedIndex >= 0 ? savedIndex : 0);
-      const showPicker = voices.length > 1;
-      voiceLabel.hidden = !showPicker;
-      voiceSelect.hidden = !showPicker;
-    };
-    loadVoices();
-    speechSynthesis.addEventListener('voiceschanged', loadVoices);
-    voiceSelect.addEventListener('change', () => {
-      const selectedVoice = voices[Number(voiceSelect.value)];
-      if (selectedVoice) localStorage.setItem('reading-voice', selectedVoice.voiceURI);
-    });
-
+  } else if (readButton && stopButton && status) {
     const finish = (message: string) => {
       readButton.setAttribute('aria-pressed', 'false');
       readButton.textContent = 'Read page aloud';
@@ -86,16 +55,16 @@
         return;
       }
 
-      const readableContent = (document.querySelector('article') ?? document.querySelector('main'))?.cloneNode(true);
-      if (!(readableContent instanceof HTMLElement)) return;
-      readableContent.querySelectorAll('pre:has(code.language-mermaid), script, style').forEach((element) => element.remove());
-      const content = readableContent.textContent?.replace(/\s+/g, ' ').trim();
+      const content = (document.querySelector('article') ?? document.querySelector('main'))
+        ?.textContent?.replace(/\s+/g, ' ').trim();
       if (!content) return;
       const utterance = new SpeechSynthesisUtterance(content);
       utterance.lang = document.documentElement.lang || 'en';
-      utterance.rate = 0.95;
-      utterance.pitch = 1;
-      utterance.voice = voices[Number(voiceSelect.value)] ?? voices[0] ?? null;
+      const voices = speechSynthesis.getVoices().filter((voice) => voice.lang.startsWith('en'));
+      utterance.voice = voices.find((voice) => voice.localService && /natural|enhanced|premium/i.test(voice.name))
+        ?? voices.find((voice) => voice.localService)
+        ?? voices[0]
+        ?? null;
       utterance.addEventListener('end', () => finish('Reading finished.'));
       utterance.addEventListener('error', () => finish('Reading stopped.'));
       speechSynthesis.speak(utterance);

@@ -70,20 +70,15 @@
             fallback.insertAdjacentElement('afterend', diagram);
           }
 
-          try {
-            const id = `mermaid-diagram-${index}-${renderNumber++}`;
-            const { svg, bindFunctions } = await mermaid.render(id, source);
-            diagram.innerHTML = svg;
-            bindFunctions?.(diagram);
-            diagram.hidden = false;
-            fallback.hidden = true;
-          } catch (error) {
-            diagram.hidden = true;
-            fallback.hidden = false;
-            console.error('Mermaid could not render a diagram; its source is shown instead.', error);
-          }
-        }
-      };
+      const selectedTheme = document.documentElement.dataset.theme;
+      const useDarkTheme = selectedTheme === 'dark' || selectedTheme === 'contrast'
+        || (!selectedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'strict',
+        theme: useDarkTheme ? 'dark' : 'default'
+      });
 
       await renderAll();
       document.addEventListener('colour-theme-change', renderAll);
