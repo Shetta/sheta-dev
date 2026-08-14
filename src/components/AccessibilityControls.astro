@@ -1,0 +1,84 @@
+<aside class="accessibility-tools" aria-label="Accessibility tools">
+  <label for="colour-theme">Colour theme</label>
+  <select id="colour-theme">
+    <option value="system">System</option>
+    <option value="light">Light</option>
+    <option value="dark">Dark</option>
+    <option value="contrast">High contrast</option>
+  </select>
+  <button id="read-page" type="button" aria-pressed="false">Read page aloud</button>
+  <button id="stop-reading" type="button" hidden>Stop reading</button>
+  <span id="speech-status" class="visually-hidden" role="status" aria-live="polite"></span>
+</aside>
+
+<script>
+  const theme = document.querySelector<HTMLSelectElement>('#colour-theme');
+  const readButton = document.querySelector<HTMLButtonElement>('#read-page');
+  const stopButton = document.querySelector<HTMLButtonElement>('#stop-reading');
+  const status = document.querySelector<HTMLElement>('#speech-status');
+  const storageKey = 'colour-theme';
+
+  if (theme) {
+    const savedTheme = localStorage.getItem(storageKey);
+    theme.value = ['light', 'dark', 'contrast'].includes(savedTheme ?? '') ? savedTheme! : 'system';
+    theme.addEventListener('change', () => {
+      const selected = theme.value;
+      document.documentElement.dataset.theme = selected;
+      if (selected === 'system') localStorage.removeItem(storageKey);
+      else localStorage.setItem(storageKey, selected);
+    });
+  }
+
+  if (!('speechSynthesis' in window)) {
+    readButton?.setAttribute('hidden', '');
+  } else if (readButton && stopButton && status) {
+    const finish = (message: string) => {
+      readButton.setAttribute('aria-pressed', 'false');
+      readButton.textContent = 'Read page aloud';
+      stopButton.hidden = true;
+      status.textContent = message;
+    };
+
+    readButton.addEventListener('click', () => {
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+        readButton.textContent = 'Pause reading';
+        readButton.setAttribute('aria-pressed', 'true');
+        status.textContent = 'Reading resumed.';
+        return;
+      }
+      if (speechSynthesis.speaking) {
+        speechSynthesis.pause();
+        readButton.textContent = 'Resume reading';
+        readButton.setAttribute('aria-pressed', 'false');
+        status.textContent = 'Reading paused.';
+        return;
+      }
+
+      const content = (document.querySelector('article') ?? document.querySelector('main'))
+        ?.textContent?.replace(/\s+/g, ' ').trim();
+      if (!content) return;
+      const utterance = new SpeechSynthesisUtterance(content);
+      utterance.lang = document.documentElement.lang || 'en';
+      const voices = speechSynthesis.getVoices().filter((voice) => voice.lang.startsWith('en'));
+      utterance.voice = voices.find((voice) => voice.localService && /natural|enhanced|premium/i.test(voice.name))
+        ?? voices.find((voice) => voice.localService)
+        ?? voices[0]
+        ?? null;
+      utterance.addEventListener('end', () => finish('Reading finished.'));
+      utterance.addEventListener('error', () => finish('Reading stopped.'));
+      speechSynthesis.speak(utterance);
+      readButton.textContent = 'Pause reading';
+      readButton.setAttribute('aria-pressed', 'true');
+      stopButton.hidden = false;
+      status.textContent = 'Reading started.';
+    });
+
+    stopButton.addEventListener('click', () => {
+      speechSynthesis.cancel();
+      finish('Reading stopped.');
+    });
+
+    window.addEventListener('pagehide', () => speechSynthesis.cancel());
+  }
+</script>

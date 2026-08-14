@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import AccessibilityControls from '../components/AccessibilityControls.astro';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, siteUrl } from '../lib/site';
 
 interface Props {
@@ -38,6 +39,10 @@ const markdownAbsoluteUrl = markdownUrl ? siteUrl(Astro.site, markdownUrl) : und
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
+    <script is:inline>
+      const savedTheme = localStorage.getItem('colour-theme');
+      if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#content">skip to content</a>
@@ -50,6 +55,7 @@ const markdownAbsoluteUrl = markdownUrl ? siteUrl(Astro.site, markdownUrl) : und
       </nav>
     </header>
     <main id="content">
+      <AccessibilityControls />
       <slot />
     </main>
     <footer class="site-footer">
