@@ -173,6 +173,23 @@ pre {
   height: auto;
   margin-inline: auto;
 }
+/* Mermaid emits presentation attributes and foreign-object labels. Override both
+   SVG and HTML label forms so the active site theme always controls contrast. */
+.mermaid-diagram text,
+.mermaid-diagram .label,
+.mermaid-diagram .nodeLabel,
+.mermaid-diagram .edgeLabel,
+.mermaid-diagram .cluster-label,
+.mermaid-diagram .label p,
+.mermaid-diagram .nodeLabel p,
+.mermaid-diagram .edgeLabel p {
+  color: var(--fg) !important;
+  fill: var(--fg) !important;
+}
+.mermaid-diagram .edgeLabel,
+.mermaid-diagram .edgeLabel p {
+  background-color: var(--code-bg) !important;
+}
 code { font-family: inherit; }
 :not(pre) > code {
   padding: .1rem .3rem;
