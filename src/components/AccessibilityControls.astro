@@ -39,23 +39,53 @@
   if (!('speechSynthesis' in window)) {
     readButton?.setAttribute('hidden', '');
   } else if (readButton && stopButton && status && voiceSelect && voiceLabel && previewButton) {
+    const voiceStorageKey = 'reading-voice';
     let voices: SpeechSynthesisVoice[] = [];
-    const naturalVoicePattern = /natural|enhanced|premium|neural|siri|google.*english|microsoft.*online/i;
-    const voiceQuality = (voice: SpeechSynthesisVoice) =>
-      (naturalVoicePattern.test(voice.name) ? 2 : 0) + (voice.localService ? 0 : 1);
+    let speechSession = 0;
+
+    type VoiceQuality = 'Natural' | 'Enhanced' | 'Standard';
+
+    const voiceQuality = (voice: SpeechSynthesisVoice): VoiceQuality => {
+      const name = voice.name.toLowerCase();
+      if (/\b(natural|neural)\b/.test(name)) return 'Natural';
+      if (/\b(enhanced|premium)\b/.test(name) || /\b(samantha|alex)\b/.test(name)) return 'Enhanced';
+      return 'Standard';
+    };
+
+    const voiceScore = (voice: SpeechSynthesisVoice) => {
+      const name = voice.name.toLowerCase();
+      const quality = voiceQuality(voice);
+      let score = quality === 'Natural' ? 300 : quality === 'Enhanced' ? 200 : 0;
+
+      // Microsoft exposes its highest-quality Edge voices as Online (Natural).
+      if (/microsoft/.test(name) && /\bonline\b/.test(name)) score += 70;
+      else if (/\bonline\b/.test(name)) score += 50;
+      if (/\b(ava|andrew|aria|jenny|emma|brian)\b/.test(name)) score += 25;
+      if (/google.*english/.test(name)) score += 15;
+      if (voice.lang.toLowerCase() === 'en-us') score += 10;
+      if (!voice.localService) score += 20;
+      return score;
+    };
+
     const loadVoices = () => {
-      voices = speechSynthesis.getVoices()
+      const uniqueVoices = new Map<string, SpeechSynthesisVoice>();
+      speechSynthesis.getVoices()
         .filter((voice) => voice.lang.toLowerCase().startsWith('en'))
-        .sort((a, b) => voiceQuality(b) - voiceQuality(a));
-      voiceSelect.replaceChildren(...voices.map((voice, index) => {
+        .forEach((voice) => uniqueVoices.set(voice.voiceURI, voice));
+      voices = [...uniqueVoices.values()].sort((a, b) =>
+        voiceScore(b) - voiceScore(a) || a.name.localeCompare(b.name),
+      );
+      voiceSelect.replaceChildren(...voices.map((voice) => {
         const option = document.createElement('option');
-        option.value = String(index);
-        option.textContent = `${voice.name} (${voice.lang})${naturalVoicePattern.test(voice.name) ? ' — natural' : ''}`;
+        const quality = voiceQuality(voice);
+        option.value = voice.voiceURI;
+        option.textContent = `${voice.name} — ${voice.lang}${quality === 'Standard' ? '' : ` · ${quality}`}`;
         return option;
       }));
-      const savedVoice = localStorage.getItem('reading-voice');
-      const savedIndex = voices.findIndex((voice) => voice.voiceURI === savedVoice);
-      voiceSelect.value = String(savedIndex >= 0 ? savedIndex : 0);
+      const savedVoice = localStorage.getItem(voiceStorageKey);
+      voiceSelect.value = voices.some((voice) => voice.voiceURI === savedVoice)
+        ? savedVoice!
+        : voices[0]?.voiceURI ?? '';
       const showPicker = voices.length > 1;
       voiceLabel.hidden = !showPicker;
       voiceSelect.hidden = !showPicker;
@@ -64,27 +94,37 @@
     loadVoices();
     speechSynthesis.addEventListener('voiceschanged', loadVoices);
     voiceSelect.addEventListener('change', () => {
-      const selectedVoice = voices[Number(voiceSelect.value)];
-      if (selectedVoice) localStorage.setItem('reading-voice', selectedVoice.voiceURI);
+      const selectedVoice = voices.find((voice) => voice.voiceURI === voiceSelect.value);
+      if (selectedVoice) localStorage.setItem(voiceStorageKey, selectedVoice.voiceURI);
     });
 
-    const speak = (text: string, onEnd?: () => void) => {
+    const selectedVoice = () =>
+      voices.find((voice) => voice.voiceURI === voiceSelect.value) ?? voices[0] ?? null;
+
+    const speak = (text: string, session: number, onEnd?: () => void) => {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = document.documentElement.lang || 'en';
+      utterance.voice = selectedVoice();
+      utterance.lang = utterance.voice?.lang || document.documentElement.lang || 'en';
       utterance.rate = 0.95;
       utterance.pitch = 1;
-      utterance.voice = voices[Number(voiceSelect.value)] ?? voices[0] ?? null;
-      if (onEnd) utterance.addEventListener('end', onEnd);
-      utterance.addEventListener('error', () => finish('Reading stopped.'));
+      if (onEnd) utterance.addEventListener('end', () => {
+        if (session === speechSession) onEnd();
+      });
+      utterance.addEventListener('error', (event) => {
+        if (session === speechSession && event.error !== 'canceled' && event.error !== 'interrupted') {
+          finish('The selected voice could not continue reading.');
+        }
+      });
       speechSynthesis.speak(utterance);
     };
 
-    const speakSections = (sections: string[], index = 0) => {
+    const speakSections = (sections: string[], session: number, index = 0) => {
+      if (session !== speechSession) return;
       if (index >= sections.length) {
         finish('Reading finished.');
         return;
       }
-      speak(sections[index], () => speakSections(sections, index + 1));
+      speak(sections[index], session, () => speakSections(sections, session, index + 1));
     };
 
     const finish = (message: string) => {
@@ -112,14 +152,21 @@
 
       const readableContent = (document.querySelector('article') ?? document.querySelector('main'))?.cloneNode(true);
       if (!(readableContent instanceof HTMLElement)) return;
-      readableContent.querySelectorAll('pre:has(code.language-mermaid), script, style').forEach((element) => element.remove());
+      readableContent.querySelectorAll('script, style, nav, aside, form, [aria-hidden="true"], .mermaid').forEach((element) => element.remove());
+      readableContent.querySelectorAll('pre').forEach((element) => {
+        const announcement = document.createElement('p');
+        announcement.textContent = 'Code example.';
+        element.replaceWith(announcement);
+      });
       const sections = [...readableContent.querySelectorAll('h1, h2, h3, p, li, blockquote')]
+        .filter((element) => !element.parentElement?.closest('li, blockquote'))
         .map((element) => element.textContent?.replace(/\s+/g, ' ').trim())
         .filter((text): text is string => Boolean(text));
       if (sections.length === 0) return;
       // Queue one semantic section at a time. This gives the synthesizer natural
       // pauses and avoids browsers dropping items from a large utterance queue.
-      speakSections(sections);
+      speechSession += 1;
+      speakSections(sections, speechSession);
       readButton.textContent = 'Pause reading';
       readButton.setAttribute('aria-pressed', 'true');
       stopButton.hidden = false;
@@ -127,12 +174,17 @@
     });
 
     previewButton.addEventListener('click', () => {
+      speechSession += 1;
       speechSynthesis.cancel();
-      speak('This is a preview of the selected reading voice.', () => finish('Voice preview finished.'));
+      speak('This is a preview of the selected reading voice.', speechSession, () => finish('Voice preview finished.'));
+      readButton.textContent = 'Read page aloud';
+      readButton.setAttribute('aria-pressed', 'false');
+      stopButton.hidden = false;
       status.textContent = 'Playing voice preview.';
     });
 
     stopButton.addEventListener('click', () => {
+      speechSession += 1;
       speechSynthesis.cancel();
       finish('Reading stopped.');
     });
