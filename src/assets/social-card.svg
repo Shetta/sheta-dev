@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f0f0f"/>
+  <rect x="64" y="64" width="1072" height="502" rx="12" fill="#171717" stroke="#555" stroke-width="2"/>
+  <path d="M64 174H1136" stroke="#333" stroke-width="2"/>
+  <circle cx="110" cy="119" r="10" fill="#8ab4f8"/>
+  <circle cx="142" cy="119" r="10" fill="#aaa"/>
+  <circle cx="174" cy="119" r="10" fill="#555"/>
+  <text x="600" y="129" text-anchor="middle" fill="#aaa" font-family="DejaVu Sans Mono, monospace" font-size="26">blog.sheta.dev</text>
+  <text x="116" y="315" fill="#eee" font-family="DejaVu Sans Mono, monospace" font-size="72" font-weight="700">Ahmed Sheta</text>
+  <text x="116" y="390" fill="#8ab4f8" font-family="DejaVu Sans Mono, monospace" font-size="34">Technical notes on software systems.</text>
+  <path d="M116 464H760" stroke="#555" stroke-width="2"/>
+  <text x="116" y="515" fill="#aaa" font-family="DejaVu Sans Mono, monospace" font-size="24">durable ideas · readable text · copyable code</text>
+</svg>

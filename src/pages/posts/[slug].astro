@@ -29,7 +29,8 @@ const jsonLd = {
   mainEntityOfPage: canonicalUrl,
   url: canonicalUrl,
   author: { '@type': 'Person', name: 'Ahmed Sheta', url: new URL('/about/', Astro.site).toString() },
-  keywords: post.data.tags
+  keywords: post.data.tags,
+  image: new URL(post.data.image ?? '/social-card.png', Astro.site).toString()
 };
 ---
 <Base
@@ -40,6 +41,8 @@ const jsonLd = {
   publishedTime={post.data.published.toISOString()}
   modifiedTime={(post.data.updated ?? post.data.published).toISOString()}
   tags={post.data.tags}
+  image={post.data.image}
+  imageAlt={post.data.imageAlt ?? `${post.data.title} — ${post.data.description}`}
   jsonLd={jsonLd}
 >
   <article>
