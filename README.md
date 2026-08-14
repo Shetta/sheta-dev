@@ -19,6 +19,12 @@ npm run build
 
 The static site is emitted to `dist/`.
 
+## Accessibility
+
+The colour-theme control supports system, light, dark, and high-contrast modes. Code highlighting ships with separate high-contrast light and dark palettes, so it does not rely on a dark palette in light mode.
+
+The “Read page aloud” control uses the browser's built-in Web Speech API. Readers can choose among the English voices installed in their browser or operating system; voices labelled natural, enhanced, premium, or neural are listed first. Voice availability and quality still depend on the reader's device. Speech is generated on the reader's device: it does not call the Worker, add a paid text-to-speech service, or consume additional Cloudflare requests beyond serving the page itself. A consistently neural cloud voice would require a separate text-to-speech provider and may add usage cost.
+
 ## Cloudflare Workers
 
 The repository deploys static assets and a small content-negotiation Worker with `wrangler.jsonc`.
@@ -89,22 +95,4 @@ flowchart LR
 ```
 ````
 
-Use AWS service icons in Mermaid architecture diagrams with the registered Iconify `logos` pack:
-
-````text
-```mermaid
-architecture-beta
-  group aws(cloud)[AWS]
-
-  service api(logos:aws-api-gateway)[API Gateway] in aws
-  service queue(logos:aws-sqs)[SQS] in aws
-  service worker(logos:aws-lambda)[Lambda] in aws
-  service store(logos:aws-dynamodb)[DynamoDB] in aws
-
-  api:R --> L:queue
-  queue:R --> L:worker
-  worker:R --> L:store
-```
-````
-
-The browser loads pinned Mermaid and Iconify modules from jsDelivr. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block.
+The browser loads a pinned Mermaid module from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block as a fallback.
