@@ -13,7 +13,11 @@ export default defineConfig({
       excludeLangs: ['mermaid', 'math']
     },
     shikiConfig: {
-      theme: 'github-dark-default',
+      themes: {
+        light: 'github-light-high-contrast',
+        dark: 'github-dark-high-contrast'
+      },
+      defaultColor: false,
       wrap: true
     }
   }

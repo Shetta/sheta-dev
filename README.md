@@ -19,6 +19,12 @@ npm run build
 
 The static site is emitted to `dist/`.
 
+## Accessibility
+
+The colour-theme control supports system, light, dark, and high-contrast modes. Code highlighting ships with separate high-contrast light and dark palettes, so it does not rely on a dark palette in light mode.
+
+The “Read page aloud” control uses the browser's built-in Web Speech API. Readers can preview and choose among the English voices exposed by their browser or operating system. Network voices and voices labelled natural, enhanced, premium, or neural are preferred, and content is spoken in semantic sections for better pacing. Voice availability and quality still depend on the reader's device. Speech does not call the Worker or add a paid text-to-speech service. A consistently neural voice would require a cloud text-to-speech provider, add network and privacy considerations, and may add usage cost.
+
 ## Cloudflare Workers
 
 The repository deploys static assets and a small content-negotiation Worker with `wrangler.jsonc`.
@@ -89,22 +95,16 @@ flowchart LR
 ```
 ````
 
-Use AWS service icons in Mermaid architecture diagrams with the registered Iconify `logos` pack:
+Architecture diagrams can use the registered Iconify `logos` pack for real AWS service icons:
 
 ````text
 ```mermaid
 architecture-beta
   group aws(cloud)[AWS]
-
-  service api(logos:aws-api-gateway)[API Gateway] in aws
-  service queue(logos:aws-sqs)[SQS] in aws
-  service worker(logos:aws-lambda)[Lambda] in aws
-  service store(logos:aws-dynamodb)[DynamoDB] in aws
-
-  api:R --> L:queue
-  queue:R --> L:worker
-  worker:R --> L:store
+  service source(logos:aws-kinesis)[Kinesis] in aws
+  service job(logos:apache-spark)[EMR Spark] in aws
+  source:R --> L:job
 ```
 ````
 
-The browser loads pinned Mermaid and Iconify modules from jsDelivr. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid does not load or cannot render a diagram, the page shows its source block.
+The browser loads pinned Mermaid and Iconify modules from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid or the AWS icon pack does not load, or a diagram cannot render, the page shows its source block as a fallback.
