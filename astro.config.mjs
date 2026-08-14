@@ -8,6 +8,10 @@ export default defineConfig({
     format: 'directory'
   },
   markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math']
+    },
     shikiConfig: {
       theme: 'github-dark-default',
       wrap: true
