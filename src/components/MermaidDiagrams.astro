@@ -24,10 +24,14 @@
         }
       ]);
 
+      const selectedTheme = document.documentElement.dataset.theme;
+      const useDarkTheme = selectedTheme === 'dark' || selectedTheme === 'contrast'
+        || (!selectedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'strict',
-        theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+        theme: useDarkTheme ? 'dark' : 'default'
       });
 
       for (const [index, code] of blocks.entries()) {

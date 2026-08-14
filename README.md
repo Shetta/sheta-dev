@@ -19,6 +19,12 @@ npm run build
 
 The static site is emitted to `dist/`.
 
+## Accessibility
+
+The colour-theme control supports system, light, dark, and high-contrast modes. Code highlighting ships with separate high-contrast light and dark palettes, so it does not rely on a dark palette in light mode.
+
+The “Read page aloud” control uses the browser's built-in Web Speech API. It prefers a locally installed natural or enhanced English voice when one is available, then falls back to another device voice. Voice availability and quality depend on the reader's browser and operating system. Speech is generated on the reader's device: it does not call the Worker, add a paid text-to-speech service, or consume additional Cloudflare requests beyond serving the page itself.
+
 ## Cloudflare Workers
 
 The repository deploys static assets and a small content-negotiation Worker with `wrangler.jsonc`.
