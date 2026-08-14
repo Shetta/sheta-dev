@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "validate": "npm run check && npm run build && node scripts/validate-build.mjs && node scripts/validate-worker.mjs"
   },
   "dependencies": {
     "astro": "^7.2.2"

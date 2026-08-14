@@ -17,6 +17,11 @@ function isCleanPostPath(pathname) {
   return true;
 }
 
+function markdownPath(pathname) {
+  const cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  return `${cleanPath}.md`;
+}
+
 function withAgentHeaders(response) {
   const headers = new Headers(response.headers);
   headers.set('Content-Type', 'text/markdown; charset=utf-8');
@@ -35,7 +40,7 @@ export default {
 
     if (request.method === 'GET' && wantsMarkdown(request) && isCleanPostPath(url.pathname)) {
       const markdownUrl = new URL(request.url);
-      markdownUrl.pathname = `${url.pathname}.md`;
+      markdownUrl.pathname = markdownPath(url.pathname);
       const markdownRequest = new Request(markdownUrl, request);
       const response = await env.ASSETS.fetch(markdownRequest);
 

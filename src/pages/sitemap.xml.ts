@@ -1,16 +1,31 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { siteUrl } from '../lib/site';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ site }) => {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
-  const urls = [
-    'https://sheta.dev/',
-    'https://sheta.dev/about',
-    'https://sheta.dev/posts',
-    ...posts.map((post) => `https://sheta.dev/posts/${post.id}`),
-    ...posts.map((post) => `https://sheta.dev/posts/${post.id}.md`)
+  const pages: Array<{ loc: string; lastmod?: string }> = [
+    { loc: siteUrl(site) },
+    { loc: siteUrl(site, '/about/') },
+    { loc: siteUrl(site, '/posts/') },
+    ...posts.map((post) => ({
+      loc: siteUrl(site, `/posts/${post.id}/`),
+      lastmod: (post.data.updated ?? post.data.published).toISOString().slice(0, 10)
+    }))
   ];
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((url) => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>`;
-  return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
+  const entries = pages.map(({ loc, lastmod }) => [
+    '  <url>',
+    `    <loc>${loc}</loc>`,
+    ...(lastmod ? [`    <lastmod>${lastmod}</lastmod>`] : []),
+    '  </url>'
+  ].join('\n')).join('\n');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>`;
+  return new Response(xml, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=300'
+    }
+  });
 };

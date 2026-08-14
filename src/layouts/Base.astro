@@ -1,45 +1,59 @@
 ---
 import '../styles/global.css';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, siteUrl } from '../lib/site';
 
 interface Props {
   title?: string;
   description?: string;
   markdownUrl?: string;
+  noIndex?: boolean;
 }
 
 const {
-  title = 'Ahmed Sheta',
-  description = 'Notes on software, distributed systems, data, and things I am learning.',
-  markdownUrl
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION,
+  markdownUrl,
+  noIndex = false
 } = Astro.props;
 
-const fullTitle = title === 'Ahmed Sheta' ? title : `${title} — Ahmed Sheta`;
+const fullTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
+const canonicalUrl = siteUrl(Astro.site, Astro.url.pathname);
+const rssUrl = siteUrl(Astro.site, '/rss.xml');
+const markdownAbsoluteUrl = markdownUrl ? siteUrl(Astro.site, markdownUrl) : undefined;
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    {noIndex && <meta name="robots" content="noindex" />}
     <title>{fullTitle}</title>
-    <link rel="alternate" type="application/rss+xml" title="Ahmed Sheta" href="/rss.xml" />
-    {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} />}
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={rssUrl} />
+    {markdownAbsoluteUrl && <link rel="alternate" type="text/markdown" href={markdownAbsoluteUrl} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
   </head>
   <body>
+    <a class="skip-link" href="#content">skip to content</a>
     <header class="site-header">
-      <a class="header-name" href="/">sheta.dev</a>
+      <a class="header-name" href="/">{SITE_NAME}</a>
       <nav aria-label="Primary">
-        <a href="/posts">posts</a>
-        <a href="/about">about</a>
+        <a href="/posts/">posts</a>
+        <a href="/about/">about</a>
         <a href="/llms.txt">llms.txt</a>
       </nav>
     </header>
-    <main>
+    <main id="content">
       <slot />
     </main>
     <footer class="site-footer">
-      <span>Ahmed Sheta · <a href="/rss.xml">RSS</a> · <a href="/sitemap.xml">sitemap</a></span>
+      <span>Ahmed Sheta · <a href="/rss.xml">RSS</a> · <a href="/sitemap.xml">sitemap</a> · <a href="https://github.com/Shetta">GitHub</a></span>
     </footer>
   </body>
 </html>

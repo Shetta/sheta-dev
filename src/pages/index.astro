@@ -10,19 +10,21 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft))
   <h1>Ahmed Sheta</h1>
   <p>
     Software engineer. I write about distributed systems, data infrastructure,
-    reliability, and whatever I am trying to understand deeply enough to explain simply.
+    reliability, and subjects I have studied long enough to explain in plain language.
   </p>
 
   <h2>Writing</h2>
   <ul class="post-list">
     {posts.map((post) => (
       <li>
-        <h2><a href={`/posts/${post.id}`}>{post.data.title}</a></h2>
-        <div class="muted">{post.data.published.toISOString().slice(0, 10)}</div>
+        <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
+        <time class="muted" datetime={post.data.published.toISOString()}>
+          {post.data.published.toISOString().slice(0, 10)}
+        </time>
         <p>{post.data.description}</p>
       </li>
     ))}
   </ul>
 
-  <p><a href="/posts">All posts →</a></p>
+  <p><a href="/posts/">All posts →</a></p>
 </Base>
