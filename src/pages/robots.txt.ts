@@ -5,6 +5,7 @@ export const GET: APIRoute = ({ site }) => {
   const body = [
     'User-agent: *',
     'Allow: /',
+    'Content-Signal: search=yes, ai-train=no, use=reference',
     '',
     `Sitemap: ${siteUrl(site, '/sitemap.xml')}`,
     ''

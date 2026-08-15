@@ -10,7 +10,7 @@ export default defineConfig({
   markdown: {
     syntaxHighlight: {
       type: 'shiki',
-      excludeLangs: ['mermaid', 'math']
+      excludeLangs: ['math']
     },
     shikiConfig: {
       themes: {

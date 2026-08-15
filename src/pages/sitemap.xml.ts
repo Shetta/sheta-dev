@@ -7,6 +7,7 @@ export const GET: APIRoute = async ({ site }) => {
   const pages: Array<{ loc: string; lastmod?: string }> = [
     { loc: siteUrl(site) },
     { loc: siteUrl(site, '/about/') },
+    { loc: siteUrl(site, '/policies/') },
     { loc: siteUrl(site, '/posts/') },
     ...posts.map((post) => ({
       loc: siteUrl(site, `/posts/${post.id}/`),

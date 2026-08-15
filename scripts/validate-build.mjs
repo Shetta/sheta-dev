@@ -15,6 +15,7 @@ async function read(pathname) {
 const files = {
   home: await read('index.html'),
   about: await read('about/index.html'),
+  policies: await read('policies/index.html'),
   posts: await read('posts/index.html'),
   rss: await read('rss.xml'),
   sitemap: await read('sitemap.xml'),
@@ -26,6 +27,7 @@ const files = {
 const htmlDocuments = [
   ['home', files.home],
   ['about', files.about],
+  ['policies', files.policies],
   ['posts', files.posts],
   ['404', files.notFound]
 ];
@@ -40,6 +42,8 @@ assert(files.home.includes('Software systems, data infrastructure, and reliabili
 assert(files.home.includes('/posts/aws-for-beginners-one-file-upload/'), 'home does not link to the beginner guide');
 assert(files.about.includes(`rel="canonical" href="${canonicalHost}/about/"`), 'about canonical is wrong');
 assert(files.about.includes('"@type":"Person"'), 'about Person JSON-LD is missing');
+assert(files.policies.includes(`rel="canonical" href="${canonicalHost}/policies/"`), 'policies canonical is wrong');
+assert(files.policies.includes('AI training'), 'publishing policy does not state the AI-training preference');
 assert(files.posts.includes(`rel="canonical" href="${canonicalHost}/posts/"`), 'posts canonical is wrong');
 assert(files.notFound.includes('name="robots" content="noindex"'), '404 page must be noindex');
 
@@ -52,6 +56,8 @@ assert(sitemapUrls.length >= 4, 'sitemap does not contain the expected pages');
 assert(sitemapUrls.every((url) => url.startsWith(`${canonicalHost}/`)), 'sitemap contains another host');
 assert(sitemapUrls.every((url) => !url.endsWith('.md')), 'sitemap contains Markdown alternates');
 assert(files.robots.includes(`Sitemap: ${canonicalHost}/sitemap.xml`), 'robots.txt points to the wrong sitemap');
+assert(files.robots.includes('ai-train=no'), 'robots.txt must disallow AI training');
+assert(files.sitemap.includes(`<loc>${canonicalHost}/policies/</loc>`), 'policies page is missing from the sitemap');
 
 const postRoot = new URL('posts/', dist);
 const postDirectories = (await readdir(postRoot, { withFileTypes: true }))
@@ -65,10 +71,10 @@ for (const slug of postDirectories) {
   assert(html.includes(`rel="canonical" href="${canonical}"`), `${slug} canonical is wrong`);
   assert(html.includes('<meta property="og:type" content="article">'), `${slug} article Open Graph type is missing`);
   assert(html.includes('property="article:published_time"'), `${slug} published metadata is missing`);
-  assert(html.includes(`property="og:image" content="${canonicalHost}/social-card.png"`), `${slug} Open Graph image is missing`);
+  assert(html.includes(`property="og:image" content="${canonicalHost}/social/${slug}.png"`), `${slug} article Open Graph image is missing`);
   assert(html.includes('property="og:image:width" content="1200"'), `${slug} Open Graph image dimensions are missing`);
   assert(html.includes('name="twitter:card" content="summary_large_image"'), `${slug} Twitter metadata is missing`);
-  assert(html.includes(`name="twitter:image" content="${canonicalHost}/social-card.png"`), `${slug} Twitter image is missing`);
+  assert(html.includes(`name="twitter:image" content="${canonicalHost}/social/${slug}.png"`), `${slug} article Twitter image is missing`);
   assert(html.includes('"@type":"BlogPosting"'), `${slug} BlogPosting JSON-LD is missing`);
   assert(html.includes('rel="alternate" type="text/markdown"'), `${slug} Markdown alternate is missing`);
   assert(html.includes('By <a href="/about/">Ahmed Sheta</a>'), `${slug} visible author link is missing`);
@@ -82,15 +88,18 @@ const architecturePost = await read('posts/the-replay-that-outgrew-the-cross-acc
 const beginnerPost = await read('posts/aws-for-beginners-one-file-upload.md');
 assert(beginnerPost.includes('level: beginner'), 'beginner post level is missing from Markdown');
 assert(beginnerPost.includes('nextPost: the-replay-that-outgrew-the-cross-account-relay'), 'beginner post next link is missing');
-assert(beginnerPost.includes('architecture-beta'), 'beginner post does not use the architecture diagram format');
-assert(beginnerPost.includes('logos:aws-iam'), 'beginner post is missing the AWS IAM icon');
-assert(beginnerPost.includes('logos:aws-s3'), 'beginner post is missing the Amazon S3 icon');
+assert(beginnerPost.includes('/diagrams/s3-control-data-planes.svg'), 'beginner post is missing its static AWS diagram');
 assert(architecturePost.includes('prerequisites: ["aws-for-beginners-one-file-upload"]'), 'architecture prerequisite is missing');
-for (const icon of ['aws-kinesis', 'apache-spark', 'aws-dynamodb', 'aws-s3', 'aws-glue']) {
-  assert(architecturePost.includes(`logos:${icon}`), `architecture post is missing the ${icon} icon`);
+assert(architecturePost.includes('/diagrams/cross-account-kinesis-emr.svg'), 'architecture post is missing its static AWS diagram');
+assert(architecturePost.includes('illustrative composite'), 'architecture post is missing its scenario disclosure');
+assert(architecturePost.includes('does not preserve source order'), 'architecture post is missing its ordering limitation');
+assert(!files.corpus.includes('```mermaid'), 'agent corpus still contains runtime Mermaid source');
+
+await access(new URL('diagrams/s3-control-data-planes.svg', dist));
+await access(new URL('diagrams/cross-account-kinesis-emr.svg', dist));
+for (const slug of postDirectories) {
+  await access(new URL(`social/${slug}.png`, dist));
 }
-assert(architecturePost.includes('[Kinesis source stream]'), 'Kinesis icon is missing its text label');
-assert(architecturePost.includes('[EMR Spark]'), 'EMR Spark icon is missing its text label');
 
 for (const [page, html] of htmlDocuments) {
   const localLinks = [...html.matchAll(/(?:href|src)="(\/[^"#?]*)/g)]

@@ -25,11 +25,13 @@ export const GET: APIRoute = async ({ props, site }) => {
     `tags: ${JSON.stringify(post.data.tags)}`,
     `level: ${post.data.level}`,
     ...(post.data.series ? [`series: ${yamlString(post.data.series)}`] : []),
+    ...(post.data.scenarioNote ? [`scenarioNote: ${yamlString(post.data.scenarioNote)}`] : []),
     `prerequisites: ${JSON.stringify(post.data.prerequisites)}`,
     ...(post.data.nextPost ? [`nextPost: ${post.data.nextPost}`] : []),
     `canonical: ${siteUrl(site, `/posts/${post.id}/`)}`,
     '---',
     '',
+    ...(post.data.scenarioNote ? [`> **Scenario note:** ${post.data.scenarioNote}`, ''] : []),
     post.body?.trim() ?? '',
     ''
   ].join('\n');
@@ -37,7 +39,7 @@ export const GET: APIRoute = async ({ props, site }) => {
   return new Response(body, {
     headers: {
       'Content-Type': 'text/markdown; charset=utf-8',
-      'Content-Signal': 'ai-train=yes, search=yes, ai-input=yes',
+      'Content-Signal': 'search=yes, ai-train=no, ai-input=yes, use=reference',
       'Cache-Control': 'public, max-age=300'
     }
   });

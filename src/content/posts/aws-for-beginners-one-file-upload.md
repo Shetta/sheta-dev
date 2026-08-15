@@ -15,27 +15,12 @@ An upload to Amazon Simple Storage Service, or Amazon S3, is a data-plane reques
 
 AWS and other distributed systems use this distinction. The control plane changes configuration. The data plane performs the work that users and applications need.
 
-An AWS account contains both planes. A Region sets the geographic boundary for most resources. AWS Identity and Access Management, or IAM, checks permissions. The service records usage for billing.
+An AWS account contains both planes. A Region sets the geographic boundary for most resources. AWS evaluates authorization for each request. The service records usage for billing.
 
-```mermaid
-architecture-beta
-  accTitle: Control-plane and data-plane requests for an S3 bucket
-  accDescr: A client uses AWS APIs. IAM checks the request. The control plane stores bucket configuration, and the data plane accepts object traffic.
-
-  group control(cloud)[AWS control plane]
-  group data(cloud)[AWS data plane]
-
-  service client(internet)[Console CLI or SDK]
-  service identity(logos:aws-iam)[IAM]
-  service bucket(logos:aws-s3)[Bucket settings] in control
-  service object(logos:aws-s3)[Object requests] in data
-
-  client:B --> T:identity
-  identity:B --> T:bucket
-  bucket:B --> T:object
-```
-
-*Figure 1. The control plane creates and configures the bucket. The data plane accepts object requests. IAM checks each request.*
+<figure class="architecture-figure">
+  <img src="/diagrams/s3-control-data-planes.svg" width="1200" height="700" loading="lazy" decoding="async" alt="A client sends separate control-plane and data-plane requests to Amazon S3. Authorization policies apply to both requests. Stored bucket configuration constrains later object requests." />
+  <figcaption>Figure 1. Bucket creation and configuration use control-plane APIs. Object traffic uses data-plane APIs. AWS evaluates authorization policies for both requests.</figcaption>
+</figure>
 
 ## Start with the API request
 
@@ -91,11 +76,13 @@ AWS gives many resources an Amazon Resource Name, or ARN. An ARN identifies a re
 
 Amazon EC2 uses the same terms. EC2 is a compute service. An EC2 instance is a resource. `ec2:StartInstances` is an action.
 
-## IAM checks the request
+## AWS evaluates authorization
 
-IAM controls access to AWS resources. It evaluates the principal, action, resource, and request context against the applicable policies.
+IAM defines identities and many of the policies that control access to AWS resources. The target service evaluates the principal, action, resource, and request context against the applicable policies.
 
-For the upload, IAM answers one question: can this principal perform `s3:PutObject` on this object? An explicit denial overrides an allow. AWS denies the request when no policy allows it. [AWS documents policy evaluation](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html).
+For the upload, AWS answers one question: can this principal perform `s3:PutObject` on this object? The decision can include an identity policy, bucket policy, permissions boundary, session policy, organization policy, or VPC endpoint policy. S3 Block Public Access can add another restriction. Not every control applies to every request.
+
+An explicit denial overrides an allow. AWS denies the request when no applicable policy allows it. [AWS documents policy evaluation](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html).
 
 An `AccessDenied` response can mean that IAM recognized the principal but found no applicable allow. Valid credentials do not grant every action on every resource.
 
@@ -138,7 +125,7 @@ Use an administrative identity for this procedure. Do not use the root user.
 
 Do not make the object public. Delete the test resources when the exercise is complete.
 
-The procedure uses two planes. Bucket creation and deletion use the control plane. Object upload and deletion use the data plane. IAM checks each request, and AWS records the applicable usage.
+The procedure uses two planes. Bucket creation and deletion use the control plane. Object upload and deletion use the data plane. AWS evaluates authorization and records the applicable usage.
 
 ## Apply the model to another architecture
 

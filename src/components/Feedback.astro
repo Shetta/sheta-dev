@@ -1,11 +1,16 @@
 ---
 interface Props {
   title: string;
+  articleUrl: string;
 }
 
-const { title } = Astro.props;
-const correctionTitle = encodeURIComponent(`Correction: ${title}`);
-const correctionUrl = `https://github.com/Shetta/sheta-dev/issues/new?template=content-correction.yml&title=${correctionTitle}`;
+const { title, articleUrl } = Astro.props;
+const correctionParams = new URLSearchParams({
+  template: 'content-correction.yml',
+  title: `Correction: ${title}`,
+  article: articleUrl
+});
+const correctionUrl = `https://github.com/Shetta/sheta-dev/issues/new?${correctionParams}`;
 ---
 <section class="feedback" aria-labelledby="feedback-heading">
   <h2 id="feedback-heading">What should I explain next?</h2>
@@ -14,4 +19,5 @@ const correctionUrl = `https://github.com/Shetta/sheta-dev/issues/new?template=c
     <a href="https://github.com/Shetta/sheta-dev/discussions/new?category=ideas">Suggest a topic</a>
     · <a href={correctionUrl}>Report a correction</a>
   </p>
+  <p class="muted feedback-note">GitHub sign-in is required.</p>
 </section>

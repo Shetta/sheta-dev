@@ -155,7 +155,7 @@
 
       const readableContent = (document.querySelector('article') ?? document.querySelector('main'))?.cloneNode(true);
       if (!(readableContent instanceof HTMLElement)) return;
-      readableContent.querySelectorAll('script, style, nav, aside, form, [aria-hidden="true"], .mermaid').forEach((element) => element.remove());
+      readableContent.querySelectorAll('script, style, nav, aside, form, [aria-hidden="true"], .heading-permalink').forEach((element) => element.remove());
       readableContent.querySelectorAll('pre').forEach((element) => {
         const announcement = document.createElement('p');
         announcement.textContent = 'Code example.';

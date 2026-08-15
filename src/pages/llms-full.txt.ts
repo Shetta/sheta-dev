@@ -15,6 +15,7 @@ export const GET: APIRoute = async ({ site }) => {
     `Tags: ${post.data.tags.join(', ') || 'none'}`,
     `Level: ${post.data.level}`,
     post.data.series ? `Series: ${post.data.series}` : '',
+    post.data.scenarioNote ? `Scenario note: ${post.data.scenarioNote}` : '',
     post.data.prerequisites.length > 0 ? `Prerequisites: ${post.data.prerequisites.join(', ')}` : '',
     '',
     post.body?.trim() ?? '',
@@ -26,7 +27,7 @@ export const GET: APIRoute = async ({ site }) => {
   return new Response(sections.join('\n'), {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Content-Signal': 'ai-train=yes, search=yes, ai-input=yes',
+      'Content-Signal': 'search=yes, ai-train=no, ai-input=yes, use=reference',
       'Cache-Control': 'public, max-age=300'
     }
   });
