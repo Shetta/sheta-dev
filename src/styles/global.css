@@ -151,18 +151,14 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .meta { font-size: .9rem; margin-bottom: 2rem; }
 .level { text-transform: capitalize; }
 
-.start-here,
 .feedback,
 .next-reading {
-  margin: 2rem 0;
-  padding: 1rem;
-  border: 1px solid var(--line);
-  background: var(--code-bg);
+  margin: 2.5rem 0;
+  padding: 1.25rem 0;
+  border-block: 1px solid var(--line);
 }
-.start-here h2,
 .feedback h2,
 .next-reading h2 { margin: 0 0 .5rem; font-size: 1.05rem; }
-.start-here p,
 .feedback p,
 .next-reading p { margin: .5rem 0 0; }
 
@@ -172,7 +168,26 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .post-list h2 { margin: 0 0 .25rem; font-size: 1.05rem; }
 .post-list p { margin: .25rem 0 0; }
 
-article p, article li { max-width: 72ch; }
+article > p,
+article > blockquote,
+article > ul,
+article > ol { max-width: 72ch; }
+article > ul,
+article > ol { padding-inline-start: 1.5rem; }
+article li + li { margin-top: .4rem; }
+table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: .55rem .75rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
 pre {
   overflow-x: auto;
   padding: 1rem;
@@ -279,6 +294,8 @@ h3:hover .heading-permalink,
 
 @media (max-width: 600px) {
   #reading-voice { width: 100%; flex-basis: 100%; }
+  article > ul,
+  article > ol { padding-inline-start: 1.25rem; }
 }
 
 @media (forced-colors: active) {

@@ -7,22 +7,14 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft))
   .slice(0, 8);
 ---
 <Base
-  title="Distributed systems, AWS, and data infrastructure"
-  description="Production stories and plain-language guides about distributed systems, AWS, data infrastructure, and reliability."
+  title="Software systems, data infrastructure, and reliability"
+  description="Technical notes about software engineering, distributed systems, data infrastructure, reliability, and production systems."
 >
   <h1>Ahmed Sheta</h1>
   <p>
-    Software engineer. I write about distributed systems, data infrastructure,
-    reliability, and subjects I have studied long enough to explain in plain language.
+    I'm a software engineer. I write about distributed systems, data infrastructure,
+    reliability, databases, and production software.
   </p>
-
-  <section class="start-here" aria-labelledby="start-heading">
-    <h2 id="start-heading">Start here</h2>
-    <p>
-      New to AWS? <a href="/posts/aws-for-beginners-one-file-upload/">Follow one file into Amazon S3</a>
-      to learn accounts, Regions, resources, permissions, APIs, and costs.
-    </p>
-  </section>
 
   <h2>Latest writing</h2>
   <ul class="post-list">

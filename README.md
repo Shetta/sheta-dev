@@ -97,17 +97,7 @@ Shared links include Open Graph and X/Twitter large-card metadata. By default th
 
 Use a fenced `mermaid` block in a post. The browser renders the diagram on the HTML page. The Markdown endpoint retains the diagram source.
 
-````text
-```mermaid
-flowchart LR
-  accTitle: Queue processing flow
-  accDescr: A request enters a queue, and a worker processes it.
-  request[Request] --> queue[Queue]
-  queue --> worker[Worker]
-```
-````
-
-Architecture diagrams can use the registered Iconify `logos` pack for real AWS service icons:
+AWS architecture diagrams use `architecture-beta` and the registered Iconify `logos` pack. Do not represent an AWS service with a generic flowchart box.
 
 ````text
 ```mermaid
