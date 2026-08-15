@@ -36,7 +36,7 @@ for (const [name, body] of Object.entries(files)) {
 
 assert(files.home.includes('>blog.sheta.dev</a>'), 'masthead does not identify the blog host');
 assert(files.home.includes(`rel="canonical" href="${canonicalHost}/"`), 'home canonical is missing');
-assert(files.home.includes('Distributed systems, AWS, and data infrastructure | Ahmed Sheta'), 'home title is not descriptive');
+assert(files.home.includes('Software systems, data infrastructure, and reliability | Ahmed Sheta'), 'home title is not descriptive');
 assert(files.home.includes('/posts/aws-for-beginners-one-file-upload/'), 'home does not link to the beginner guide');
 assert(files.about.includes(`rel="canonical" href="${canonicalHost}/about/"`), 'about canonical is wrong');
 assert(files.about.includes('"@type":"Person"'), 'about Person JSON-LD is missing');
@@ -82,6 +82,9 @@ const architecturePost = await read('posts/the-replay-that-outgrew-the-cross-acc
 const beginnerPost = await read('posts/aws-for-beginners-one-file-upload.md');
 assert(beginnerPost.includes('level: beginner'), 'beginner post level is missing from Markdown');
 assert(beginnerPost.includes('nextPost: the-replay-that-outgrew-the-cross-account-relay'), 'beginner post next link is missing');
+assert(beginnerPost.includes('architecture-beta'), 'beginner post does not use the architecture diagram format');
+assert(beginnerPost.includes('logos:aws-iam'), 'beginner post is missing the AWS IAM icon');
+assert(beginnerPost.includes('logos:aws-s3'), 'beginner post is missing the Amazon S3 icon');
 assert(architecturePost.includes('prerequisites: ["aws-for-beginners-one-file-upload"]'), 'architecture prerequisite is missing');
 for (const icon of ['aws-kinesis', 'apache-spark', 'aws-dynamodb', 'aws-s3', 'aws-glue']) {
   assert(architecturePost.includes(`logos:${icon}`), `architecture post is missing the ${icon} icon`);

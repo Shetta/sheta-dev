@@ -427,10 +427,9 @@ For EC2, the team would keep primary and baseline core capacity on On-Demand Ins
 
 At 04:02, the first EMR job began reading all 480 shards. Engineers watched four separate clocks:
 
-- Source `SubscribeToShardEvent.MillisBehindLatest` measured how far the enhanced-fan-out consumer sat behind the stream tip.
-- Spark `processedRowsPerSecond` and micro-batch duration showed whether executors kept pace.
-- Destination `WriteProvisionedThroughputExceeded` showed hot shards or insufficient write capacity.
-- Glue consumer lag measured the final distance from the Account B stream to the analytics tables.
+Source `SubscribeToShardEvent.MillisBehindLatest` measured the enhanced-fan-out consumer's distance from the stream tip. Spark `processedRowsPerSecond` and micro-batch duration showed whether executors kept pace.
+
+Destination `WriteProvisionedThroughputExceeded` showed hot shards or insufficient write capacity. Glue consumer lag measured the distance from the Account B stream to the analytics tables.
 
 The old dashboard paired one Lambda error count with the destination record count. Operators could see a failure without locating the delay.
 

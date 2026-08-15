@@ -1,192 +1,149 @@
 ---
-title: "AWS for beginners: learn the cloud through one file upload"
-description: "Follow one file into Amazon S3 to learn AWS accounts, Regions, resources, IAM permissions, APIs, and costs."
+title: "How AWS handles one file upload"
+description: "Use an S3 upload to understand AWS control planes, data planes, accounts, Regions, IAM, APIs, and cost."
 published: 2026-08-15
-tags: [aws, beginners, s3, iam, cloud, cost]
+updated: 2026-08-15
+tags: [aws, beginners, s3, iam, cloud, control-plane, data-plane]
 level: beginner
-series: "AWS foundations"
+series: "Cloud systems"
 nextPost: the-replay-that-outgrew-the-cross-account-relay
 ---
 
-Suppose you upload one file to Amazon Simple Storage Service, or Amazon S3. Your browser sends an API request. AWS checks your identity, requested action, and target resource. A Region controls where the resource lives. AWS records the storage and request for billing.
+Amazon Web Services, or AWS, provides compute, storage, database, and networking capabilities through service APIs.
 
-That one upload contains much of the AWS mental model.
+An upload to Amazon Simple Storage Service, or Amazon S3, is a data-plane request. The bucket must exist before that request. Creating and configuring the bucket are control-plane requests.
 
-You do not need to memorize hundreds of service names. Start with five ideas: accounts, Regions, resources, permissions, and cost. Most AWS systems use them.
+AWS and other distributed systems use this distinction. The control plane changes configuration. The data plane performs the work that users and applications need.
+
+An AWS account contains both planes. A Region sets the geographic boundary for most resources. AWS Identity and Access Management, or IAM, checks permissions. The service records usage for billing.
 
 ```mermaid
-flowchart LR
-  accTitle: One file upload through the AWS mental model
-  accDescr: A signed-in person sends an upload request. AWS checks permission, stores the object in an S3 bucket, and records usage for billing.
-  person[You] -->|Upload request| api[S3 API]
-  api --> permission{IAM allows PutObject?}
-  permission -->|Yes| object[Object in an S3 bucket]
-  permission -->|No| denied[Access denied]
-  api --> usage[Request and storage usage]
-  usage --> bill[Account bill]
+architecture-beta
+  accTitle: Control-plane and data-plane requests for an S3 bucket
+  accDescr: A client uses AWS APIs. IAM checks the request. The control plane stores bucket configuration, and the data plane accepts object traffic.
+
+  group control(cloud)[AWS control plane]
+  group data(cloud)[AWS data plane]
+
+  service client(internet)[Console CLI or SDK]
+  service identity(logos:aws-iam)[IAM]
+  service bucket(logos:aws-s3)[Bucket settings] in control
+  service object(logos:aws-s3)[Object requests] in data
+
+  client:B --> T:identity
+  identity:B --> T:bucket
+  bucket:B --> T:object
 ```
 
-*Figure 1. One upload becomes an authorized API request, a stored resource, and recorded usage.*
+*Figure 1. The control plane creates and configures the bucket. The data plane accepts object requests. IAM checks each request.*
 
-## Cloud computing rents capabilities
+## Start with the API request
 
-A physical server gives you processors, memory, disks, and network connections. You buy it before you know how much work it must handle. You also install it, power it, repair it, and replace it.
+The AWS Management Console gives you forms and buttons. The AWS Command Line Interface, or CLI, gives you shell commands. An AWS software development kit, or SDK, gives your application language-specific functions.
 
-Cloud computing gives you similar capabilities through APIs. You request storage, compute, databases, and networks when you need them. The provider operates the physical infrastructure. You pay under the rules for each service.
+All three tools call service APIs. The console does not use a separate management system. When the console reports that `s3:PutObject` was denied, it names the API action that failed.
 
-AWS defines cloud computing as the on-demand delivery of IT resources through the internet with pay-as-you-go pricing. The definition matters because it names two properties. You request resources when needed, and your usage affects cost. [AWS explains cloud computing](https://aws.amazon.com/what-is-cloud-computing/).
+Each request includes an identity, an action, a resource, and context. Context can include the Region, source network, time, or encryption requirements. AWS uses these fields to decide whether it will perform the action.
 
-S3 provides object storage. An object combines data with metadata. A text file, photograph, backup, or log can become an S3 object.
+## The control plane changes configuration
 
-## Your account is the first boundary
+A control plane provides administrative APIs. These APIs create, describe, update, list, and delete resources. AWS uses the term for actions such as creating an S3 bucket or launching an Amazon EC2 instance.
 
-An AWS account contains resources and connects them to identities and billing. The account has a unique identifier. AWS uses the account as a security, access, and billing boundary. [AWS explains accounts](https://docs.aws.amazon.com/accounts/latest/reference/accounts-welcome.html).
+For this example, `CreateBucket` is a control-plane action. The request selects the bucket name and Region. Later control-plane requests can change lifecycle rules, public-access settings, encryption settings, or access points.
 
-Imagine two developers who use different AWS accounts. Each developer creates a bucket named for a separate project. One developer cannot read the other developer's objects by default. Someone must grant cross-account access before that request can succeed.
+Control-plane work can coordinate several systems. An EC2 launch can allocate a host, network interface, storage, credentials, and security rules. AWS separates this work from the service traffic that follows. [AWS describes its control planes and data planes](https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/control-planes-and-data-planes.html).
 
-This boundary explains the phrase *cross-account*. It does not mean that data moves between two regions or two companies. It means that a request crosses an account boundary.
+A recovery plan that creates resources during an outage depends on control-plane operations. AWS recommends that high-availability designs prepare capacity before an event when the workload permits it. Existing data-plane resources can then continue to serve traffic. [The AWS Reliability Pillar explains this design rule](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/understanding-availability-needs.html).
 
-Your account begins with a root user. The root user has complete access. AWS recommends that you register multi-factor authentication and reserve the root user for tasks that require it. Use an administrative identity for daily work. [AWS lists root-user practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html).
+## The data plane performs the service work
 
-## A Region controls location
+A data plane provides the service's primary function. For S3, `PutObject` writes an object and `GetObject` reads it. For EC2, the running instance and its network traffic belong to the data plane. DynamoDB item reads and writes are also data-plane operations.
 
-AWS divides its infrastructure into Regions. A Region is a separate geographic area, such as US East in Northern Virginia. Most resources belong to one Region.
+The bucket configuration tells the S3 data plane how to handle the object request. The data plane applies the current permissions, encryption settings, and storage rules. It then stores the object bytes and metadata or returns an error.
 
-Each Region contains multiple Availability Zones. An Availability Zone is an isolated location with independent power, networking, and connectivity. Applications can use several zones to reduce the effect of one location failing. [AWS explains Regions and Availability Zones](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+Data planes handle the service's regular traffic. AWS designs them with fewer dependencies than control planes and gives them higher availability goals for many services. Separate planes let AWS scale configuration work and request traffic for different loads.
 
-You select a Region when you create an S3 bucket. S3 then manages object placement for the selected storage class. For example, S3 Standard stores objects across at least three Availability Zones in that Region. [Amazon S3 documents its data redundancy](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DataDurability.html).
+Control plane and data plane are architectural roles. They do not mean that every service uses one shared control-plane network or one shared data-plane network. Each AWS service implements the boundary for its own APIs.
 
-The distinction is useful:
+## The account sets an ownership boundary
 
-- You select the Region.
-- The service can manage several Availability Zones for you.
-- AWS does not copy most resources to another Region unless you configure that behavior.
+An AWS account owns resources and connects them to identities and billing. AWS treats the account as an access and billing boundary. [AWS documents the account model](https://docs.aws.amazon.com/accounts/latest/reference/accounts-welcome.html).
 
-Region selection can affect latency, service availability, legal requirements, and price. Most beginner projects need one Region. Record its name with the project resources.
+If an identity in one account requests an object from another account, the request crosses an account boundary. The resource owner must allow that access. A cross-account request does not imply a different Region or a different company.
+
+Each account has a root user with complete access. Register multi-factor authentication for that user. Reserve it for tasks that require root credentials. Use a separate administrative identity for daily work, and do not create root access keys. [AWS lists its root-user practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html).
+
+## The Region sets a location boundary
+
+AWS divides its infrastructure into Regions. A Region is a separate geographic area, such as US East in Northern Virginia. You select a Region when you create an S3 bucket.
+
+Each Region contains multiple Availability Zones. An Availability Zone has independent power, networking, and connectivity. Applications can use more than one zone to limit the effect of a location failure. [AWS explains Regions and Availability Zones](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+
+S3 manages object placement for the selected storage class. S3 Standard stores data across at least three Availability Zones in one Region. AWS does not copy the object to another Region unless you configure a feature that does so. [Amazon S3 documents its redundancy model](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DataDurability.html).
+
+Region selection can affect latency, service availability, legal requirements, and price. Record the Region with the project configuration. A resource name without its Region can be an incomplete address.
 
 ## Services contain resources and actions
 
-AWS documentation often combines three concepts in one sentence:
+An AWS service provides a capability. S3 provides object storage. A resource is something that you create or address. S3 buckets and objects are resources. An action is an API operation such as `s3:PutObject`.
 
-- A **service** provides a capability. Amazon S3 provides object storage.
-- A **resource** is something you create or address. Buckets and objects are S3 resources.
-- An **action** is an operation. `s3:PutObject` uploads object data to a bucket.
+AWS gives many resources an Amazon Resource Name, or ARN. An ARN identifies a resource in an API request or policy. Each service defines its own ARN format.
 
-The same pattern appears elsewhere. Amazon EC2 is a compute service. An EC2 instance is a resource. `ec2:StartInstances` is an action.
+Amazon EC2 uses the same terms. EC2 is a compute service. An EC2 instance is a resource. `ec2:StartInstances` is an action.
 
-AWS gives many resources an Amazon Resource Name, or ARN. An ARN identifies one resource for an API request or policy. Each service defines its own ARN format. Treat the ARN as the resource's exact address inside AWS.
+## IAM checks the request
 
-When you read an architecture diagram, ask three questions:
+IAM controls access to AWS resources. It evaluates the principal, action, resource, and request context against the applicable policies.
 
-1. Which service provides the capability?
-2. Which resource did the team create?
-3. Which actions connect the resources?
+For the upload, IAM answers one question: can this principal perform `s3:PutObject` on this object? An explicit denial overrides an allow. AWS denies the request when no policy allows it. [AWS documents policy evaluation](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html).
 
-These questions turn a page of product names into a sequence of operations.
+An `AccessDenied` response can mean that IAM recognized the principal but found no applicable allow. Valid credentials do not grant every action on every resource.
 
-## The console, CLI, and SDK call service APIs
-
-You can upload a file through the S3 page in the AWS Management Console. You can also use the AWS Command Line Interface or an AWS software development kit. All three methods call S3 APIs.
-
-The tools serve different users:
-
-- The console helps a person inspect and change resources in a browser.
-- The CLI helps a person or script run commands in a shell.
-- An SDK lets application code call AWS services.
-
-The console is not a separate control system. It is one client of the AWS APIs. This fact helps when a console error mentions an action such as `s3:PutObject`. The message names the API permission that the request needs.
-
-## IAM decides whether AWS allows the request
-
-AWS Identity and Access Management, or IAM, controls access to AWS resources. IAM evaluates a request as a set of parts:
-
-- **Principal:** Who sent the request?
-- **Action:** What operation did the principal request?
-- **Resource:** Which resource did the principal name?
-- **Context:** Which conditions apply, such as time, network, or encryption requirements?
-
-For the file upload, the question can read like this:
-
-> Can this signed-in identity perform `s3:PutObject` on this object in this bucket?
-
-AWS authenticates the principal and evaluates the applicable policies. An explicit denial wins over an allow. If no policy allows the request, AWS denies it. [AWS documents policy evaluation](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html).
-
-This model explains many `AccessDenied` errors. The principal may be valid while the requested action or resource remains outside its permissions.
-
-Avoid long-lived access keys when a role or federated identity can supply temporary credentials. Do not create root-user access keys. These rules reduce the damage that a leaked credential can cause.
+Use roles or federated identities when they can provide temporary credentials. Long-lived access keys increase the damage that a leaked credential can cause.
 
 ## Usage creates cost
 
-AWS does not apply one price formula across its services. Each service defines its own meters. Common meters include:
+Each AWS service defines its billing measurements. S3 can charge for stored data, API requests, data processing, retrieval, and data transfer. The applicable measurements depend on the storage class and request path.
 
-- stored data over time.
-- API requests.
-- compute time and allocated capacity.
-- data transferred between locations or to the internet.
+An upload can add stored bytes and a request charge. A later download can add another request and data-transfer charges. Read the current S3 pricing page before you design around a cost assumption.
 
-An S3 upload can add stored bytes and a request. Later downloads can add more requests and data transfer. The amount may be small, but the pattern scales with usage.
+New AWS customers can receive credits under the current AWS Free Tier program. Accounts created after July 15, 2025 can select a free plan. The plan ends after six months or when its credits are depleted. Older accounts follow the legacy program. [AWS documents the current Free Tier](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html).
 
-New AWS customers can receive credits under the current AWS Free Tier program. Customers who create accounts after July 15, 2025 can select a free plan. That plan ends after six months or when its credits are depleted. Older accounts follow the legacy program. [AWS documents the current Free Tier](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html).
+AWS Budgets can send alerts and run configured actions. A budget alert is not a real-time spending cap. AWS updates budget information several times each day. Charges can continue before an alert arrives. [AWS documents budget timing](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html).
 
-Free Tier does not replace cost monitoring. Service eligibility and limits can change. Read the current service pricing page before you create a resource.
+## AWS and you divide operational work
 
-AWS Budgets can send alerts and run configured actions. A budget alert is not a real-time spending cap. AWS updates budget information several times each day, and charges can continue before an alert arrives. [AWS documents budget timing](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html).
+AWS operates the physical infrastructure and the managed service. You control your data, identities, permissions, and service configuration. AWS calls this division the shared responsibility model. [AWS explains the shared responsibility model](https://aws.amazon.com/compliance/shared-responsibility-model/).
 
-Use a budget as one guardrail. Remove resources when you finish an exercise. Check the billing console after the work.
+For an S3 object, AWS operates the storage hardware and service software. You decide who can read the object. You also select encryption, retention, and public-access settings.
 
-## AWS and you divide responsibility
+A managed service removes specified operational tasks. It does not make each customer configuration safe. Check the service documentation to find the tasks that remain yours.
 
-AWS secures and operates the physical infrastructure. You control your data, identities, permissions, and service configuration. AWS calls this division the shared responsibility model. [AWS explains the shared responsibility model](https://aws.amazon.com/compliance/shared-responsibility-model/).
+## Create one test object
 
-For the S3 object, AWS operates the storage hardware and service. You decide who can read the object. You also select encryption options, retention rules, and public-access settings.
+You can read this article without an AWS account. If you use an account, secure it before the exercise. AWS provides a [setup guide for a new environment](https://docs.aws.amazon.com/hands-on/latest/setup-environment/setup-environment.html).
 
-A managed service removes some operational work. It does not make all configurations safe. The service documentation tells you which responsibilities remain yours.
-
-## Most architectures use a few service families
-
-Service names become easier when you first identify the family:
-
-| Family | Question | Examples |
-|---|---|---|
-| Compute | Where does code run? | EC2, Lambda, ECS |
-| Storage | Where do files or objects live? | S3, EBS, EFS |
-| Database | Where does structured application data live? | RDS, DynamoDB |
-| Networking | How does traffic reach and cross resources? | VPC, Route 53, CloudFront |
-| Messaging | How do components exchange work? | SQS, SNS, EventBridge, Kinesis |
-
-You do not need to learn all examples now. Find the family first. Then learn why the architecture selected one service from that family.
-
-## Try the upload with a disposable object
-
-You can understand this article without an AWS account. If you use an account, secure it before the exercise. AWS provides a [setup guide for a new environment](https://docs.aws.amazon.com/hands-on/latest/setup-environment/setup-environment.html).
-
-Use these steps with an administrative identity, not the root user:
+Use an administrative identity for this procedure. Do not use the root user.
 
 1. Open the Amazon S3 console.
-2. Write down the selected Region.
+2. Record the selected Region.
 3. Create one general-purpose bucket.
 4. Keep Block Public Access enabled.
 5. Upload one small text file.
 6. Open the object's properties.
-7. Find the bucket, object key, Region, and storage class.
+7. Identify the bucket, object key, Region, and storage class.
 8. Delete the object.
 9. Delete the empty bucket.
 10. Check Free Tier usage and billing.
 
-Do not make the object public for this exercise. Do not leave the bucket for later. The deletion steps are part of the exercise.
+Do not make the object public. Delete the test resources when the exercise is complete.
 
-## Read an AWS diagram with the model
+The procedure uses two planes. Bucket creation and deletion use the control plane. Object upload and deletion use the data plane. IAM checks each request, and AWS records the applicable usage.
 
-You can now translate a sentence from an advanced architecture:
+## Apply the model to another architecture
 
-> An EMR job in Account A writes to a Kinesis stream in Account B.
+Consider this statement from the next article: an EMR job in Account A writes to a Kinesis stream in Account B.
 
-The sentence contains the same five ideas:
+Account A and Account B define ownership and access boundaries. EMR and Kinesis are services. The job and stream are resources. IAM policies must allow the write action across the account boundary.
 
-- Two AWS accounts create a security and billing boundary.
-- EMR and Kinesis are services.
-- The job and stream are resources.
-- IAM policies must allow a write action across the account boundary.
-- The job, stream, requests, and data can create cost.
-
-The services changed. The mental model did not.
+Creating the stream and configuring its policy use control-plane APIs. Sending records to the existing stream uses the Kinesis data plane. The same separation applies when you examine deployment, recovery, and scaling decisions in other distributed systems.

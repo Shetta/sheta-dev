@@ -6,16 +6,9 @@ tags: [meta, web]
 level: beginner
 ---
 
-This site preserves technical ideas in plain text, stable URLs, and copyable code.
+I keep this site in plain text with stable URLs and copyable code.
 
-I work within a few constraints:
-
-- pages must load fast;
-- URLs must stay stable;
-- readers must be able to copy code;
-- client-side JavaScript must remain optional;
-- each post must have a Markdown representation;
-- software agents must receive the writing without scraping presentation markup.
+I work within a few constraints. Pages must load fast, and URLs must stay stable. Readers must be able to copy code. Client-side JavaScript must remain optional. Each post must provide Markdown so software agents do not have to scrape presentation markup.
 
 For a person, this URL returns HTML:
 
@@ -36,4 +29,4 @@ The explicit Markdown form is also available:
 https://blog.sheta.dev/posts/why-this-site-is-plain.md
 ```
 
-I judge the site by whether the writing stays useful.
+I remove site features that make the writing harder to read or retrieve.
