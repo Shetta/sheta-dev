@@ -74,6 +74,11 @@ title: "My post"
 description: "One-sentence summary."
 published: 2026-08-13
 tags: [systems]
+# Optional: identify the intended reader and connect related posts.
+level: intermediate # beginner, intermediate, or advanced
+series: "Systems notes"
+prerequisites: [an-earlier-post]
+nextPost: the-next-post
 # Optional: override the default link-preview card with a 1200x630 PNG.
 # image: /images/my-post-card.png
 # imageAlt: "A concise description of the preview image."
@@ -84,7 +89,9 @@ Write Markdown here.
 
 The build creates `/posts/my-post/` and `/posts/my-post.md`, then adds the post to `/llms.txt`, `/llms-full.txt`, RSS, and the sitemap.
 
-Shared links include Open Graph and X/Twitter large-card metadata. By default they use `public/social-card.png`, which the development and build scripts generate from the text-based `src/assets/social-card.svg`; set `image` and `imageAlt` in a post's frontmatter when it needs a custom preview. Use an absolute URL or a root-relative path to a 1200×630 PNG.
+`prerequisites` and `nextPost` contain post slugs without `/posts/`. The HTML page links each referenced post. Markdown and agent indexes retain the reading level and series metadata.
+
+Shared links include Open Graph and X/Twitter large-card metadata. By default they use `public/social-card.png`, which the development and build scripts generate from `src/assets/social-card.svg`. Set `image` and `imageAlt` in a post's frontmatter when it needs a custom preview. Use an absolute URL or a root-relative path to a 1200×630 PNG.
 
 ## Add a Mermaid diagram
 
@@ -113,3 +120,7 @@ architecture-beta
 ````
 
 The browser loads pinned Mermaid and Iconify modules from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid or the AWS icon pack does not load, or a diagram cannot render, the page shows its source block as a fallback.
+
+## Reader feedback
+
+Each post links to the repository's Ideas discussion category and content-correction issue form. Keep Discussions enabled in the repository settings. The Ideas form lives in `.github/DISCUSSION_TEMPLATE/ideas.yml` and must match the `ideas` category slug.

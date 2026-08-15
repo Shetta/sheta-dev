@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const correctionTitle = encodeURIComponent(`Correction: ${title}`);
+const correctionUrl = `https://github.com/Shetta/sheta-dev/issues/new?template=content-correction.yml&title=${correctionTitle}`;
+---
+<section class="feedback" aria-labelledby="feedback-heading">
+  <h2 id="feedback-heading">What should I explain next?</h2>
+  <p>Suggest a topic, ask a question, or identify a confusing section. Responses guide future posts.</p>
+  <p>
+    <a href="https://github.com/Shetta/sheta-dev/discussions/new?category=ideas">Suggest a topic</a>
+    · <a href={correctionUrl}>Report a correction</a>
+  </p>
+</section>

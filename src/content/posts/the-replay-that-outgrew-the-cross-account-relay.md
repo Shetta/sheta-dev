@@ -3,6 +3,9 @@ title: "The replay that outgrew the cross-account relay"
 description: "A production story about moving a high-volume Kinesis feed across AWS accounts with Amazon EMR on EKS or EC2."
 published: 2026-08-13
 tags: [aws, emr, kinesis, spark, eks, architecture]
+level: advanced
+series: "AWS production architecture"
+prerequisites: [aws-for-beginners-one-file-upload]
 ---
 
 At 02:14 UTC, the replay operator released eighteen hours of retained events into the source stream. The Amazon Kinesis dashboard stayed quiet for seven minutes. Then the Lambda `IteratorAge` alarm crossed twenty minutes and kept climbing.

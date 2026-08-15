@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
+import Feedback from '../../components/Feedback.astro';
 import MermaidDiagrams from '../../components/MermaidDiagrams.astro';
 import Base from '../../layouts/Base.astro';
 
@@ -13,6 +14,12 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
+const availablePosts = await getCollection('posts', ({ data }) => !data.draft);
+const postsById = new Map(availablePosts.map((entry) => [entry.id, entry]));
+const prerequisites = post.data.prerequisites
+  .map((id) => postsById.get(id))
+  .filter((entry) => entry !== undefined);
+const nextPost = post.data.nextPost ? postsById.get(post.data.nextPost) : undefined;
 const published = post.data.published.toISOString().slice(0, 10);
 const updated = post.data.updated?.toISOString().slice(0, 10);
 const canonicalUrl = new URL(`/posts/${post.id}/`, Astro.site).toString();
@@ -49,10 +56,21 @@ const jsonLd = {
     <h1>{post.data.title}</h1>
     <div class="meta">
       <div>
+        By <a href="/about/">Ahmed Sheta</a> · <span class="level">{post.data.level}</span>
+      </div>
+      <div>
         Published <time datetime={post.data.published.toISOString()}>{published}</time>
         {updated && <> · Updated <time datetime={post.data.updated?.toISOString()}>{updated}</time></>}
       </div>
       <div>{readingMinutes} min read · <a href={`/posts/${post.id}.md`}>Markdown</a></div>
+      {post.data.series && <div>Series: {post.data.series}</div>}
+      {prerequisites.length > 0 && (
+        <div>
+          Prerequisite: {prerequisites.map((entry, index) => (
+            <>{index > 0 && ', '}<a href={`/posts/${entry.id}/`}>{entry.data.title}</a></>
+          ))}
+        </div>
+      )}
       {post.data.tags.length > 0 && (
         <div class="tags">
           {post.data.tags.map((tag) => <span class="tag">#{tag}</span>)}
@@ -68,10 +86,19 @@ const jsonLd = {
       </nav>
     )}
     <Content />
+    {nextPost && (
+      <aside class="next-reading" aria-labelledby="next-reading-heading">
+        <h2 id="next-reading-heading">Next</h2>
+        <p><a href={`/posts/${nextPost.id}/`}>{nextPost.data.title}</a></p>
+        <p>{nextPost.data.description}</p>
+      </aside>
+    )}
   </article>
+  <Feedback title={post.data.title} />
   <MermaidDiagrams />
   <script>
     document.querySelectorAll<HTMLElement>('article h2[id], article h3[id]').forEach((heading) => {
+      if (heading.closest('.table-of-contents, .next-reading')) return;
       const permalink = document.createElement('a');
       permalink.className = 'heading-permalink';
       permalink.href = `#${heading.id}`;

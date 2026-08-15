@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Suggest a topic
+    url: https://github.com/Shetta/sheta-dev/discussions/new?category=ideas
+    about: Request a subject for a future post.

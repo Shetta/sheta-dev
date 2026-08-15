@@ -11,6 +11,10 @@ const posts = defineCollection({
     updated: z.coerce.date().optional(),
     draft: z.boolean().default(false),
     tags: z.array(z.string()).default([]),
+    level: z.enum(['beginner', 'intermediate', 'advanced']).default('intermediate'),
+    series: z.string().optional(),
+    prerequisites: z.array(z.string()).default([]),
+    nextPost: z.string().optional(),
     image: z.string().optional(),
     imageAlt: z.string().optional()
   })

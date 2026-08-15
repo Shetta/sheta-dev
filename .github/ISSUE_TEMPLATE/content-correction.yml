@@ -1,0 +1,28 @@
+name: Content correction
+description: Report a factual error, broken example, unclear sentence, or outdated source.
+title: "[Correction]: "
+body:
+  - type: input
+    id: article
+    attributes:
+      label: Article URL
+      placeholder: https://blog.sheta.dev/posts/example/
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What needs correction?
+      description: Quote the smallest useful section and explain the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or source
+      description: Link to a primary source when the correction concerns technical behavior.
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed correction
+      description: Suggest replacement text when you have one.
