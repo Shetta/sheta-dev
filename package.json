@@ -3,13 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "social-card": "node scripts/generate-social-card.mjs",
-    "predev": "npm run social-card",
+    "diagrams": "node scripts/generate-diagrams.mjs",
+    "social-cards": "node scripts/generate-social-card.mjs",
+    "assets": "npm run diagrams && npm run social-cards",
+    "predev": "npm run assets",
     "dev": "astro dev",
-    "prebuild": "npm run social-card",
+    "prebuild": "npm run assets",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:links": "node scripts/check-external-links.mjs",
+    "validate:live": "node scripts/validate-live.mjs",
     "validate": "npm run check && npm run build && node scripts/validate-build.mjs && node scripts/validate-worker.mjs"
   },
   "dependencies": {

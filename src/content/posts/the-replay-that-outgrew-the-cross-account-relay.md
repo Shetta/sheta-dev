@@ -1,10 +1,12 @@
 ---
 title: "The replay that outgrew the cross-account relay"
-description: "A production story about moving a high-volume Kinesis feed across AWS accounts with Amazon EMR on EKS or EC2."
+description: "A documented composite of a high-volume Kinesis replay across AWS accounts, with Amazon EMR deployment trade-offs."
 published: 2026-08-13
+updated: 2026-08-15
 tags: [aws, emr, kinesis, spark, eks, architecture]
 level: advanced
 series: "AWS production architecture"
+scenarioNote: "This article is an illustrative composite. It does not describe one company, employer, or incident. The AWS behavior and configuration examples come from public service documentation."
 prerequisites: [aws-for-beginners-one-file-upload]
 ---
 
@@ -12,11 +14,7 @@ At 02:14 UTC, the replay operator released eighteen hours of retained events int
 
 The cross-account relay ran at its concurrency limit. Fresh events had joined the replay. The backlog aged faster than the relay drained it.
 
-The incident commander pulled the data-platform team into the call. One engineer opened the Lambda graph. Another opened the shard map. The source stream had 480 shards after the last split. Ordinary traffic stayed within relay capacity. The replay plus parsing and enrichment work exceeded it.
-
-> "Which part is slow?" the commander asked.
-
-The dashboard had no answer.
+The incident commander pulled the data-platform team into the call. One engineer opened the Lambda graph. Another opened the shard map. The source stream had 480 shards after the last split. Ordinary traffic stayed within relay capacity. The replay plus parsing and enrichment work exceeded it. The dashboard could not identify the slow stage.
 
 At 02:22, the on-call engineer bought time. The oldest replay record was eighteen hours old, close enough to the default 24-hour retention window to make diagnosis risky. She raised retention to 72 hours:
 
@@ -27,8 +25,6 @@ aws kinesis increase-stream-retention-period \
 ```
 
 AWS recommends increasing retention as a stopgap when [consumer lag threatens record expiry](https://docs.aws.amazon.com/streams/latest/dev/troubleshooting-consumers.html). The command kept evidence and unprocessed records available while the team replaced the relay.
-
-*The incident is a composite built from production constraints. The AWS behavior and configurations use current service documentation.*
 
 ## Engineers had left the workload out of the first diagram
 
@@ -46,6 +42,22 @@ At 02:31, the data-platform engineer wrote one line in the incident notes:
 
 Enhanced fan-out gives a registered Kinesis consumer [2 MiB per second of read throughput for each shard](https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html). That calculation measured the available Kinesis read allocation. Spark capacity, record size, transformations, and destination writes still governed application throughput.
 
+The team also calculated the destination requirement before it started the bridge. A provisioned destination shard accepts up to 1 MiB or 1,000 records each second. The larger of the byte-rate and record-rate results sets the minimum shard count:
+
+```text
+required destination shards = max(
+  ceiling(output MiB per second / 1 MiB per second),
+  ceiling(output records per second / 1,000 records per second)
+)
+
+catch-up rate = tested destination rate - fresh output rate
+catch-up time = replay backlog / catch-up rate
+```
+
+The catch-up rate must be positive. The load test measured transformed record sizes, hot partition keys, Spark processing time, and SDK retry time. It also left capacity for fresh records. The team treated Kinesis quotas and downstream Glue throughput as separate limits.
+
+Enhanced fan-out and longer retention also changed the incident cost. Enhanced fan-out bills consumer-shard hours and retrieved data. Extended retention bills additional shard hours. The cost estimate used the registered shard count, registration time, replay bytes, and retention duration. [Kinesis pricing defines these billing units](https://aws.amazon.com/kinesis/data-streams/pricing/).
+
 The replacement needed one Spark task per source shard, enough executors to run those tasks, and checkpoints that survived the death of any worker. Amazon EMR 7.1 had already placed the [Spark Structured Streaming Kinesis connector](https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-structured-streaming-kinesis.html) on EMR on EKS and EMR on EC2.
 
 By 02:42, the team had stopped treating the bridge as a function.
@@ -58,29 +70,10 @@ The connector source options [accept `kinesis.streamName`](https://github.com/aw
 
 The team moved the Spark job to Account A, beside the source. The connector read a same-account stream with enhanced fan-out. Spark wrote to the Account B stream by ARN through the AWS SDK. Account B granted two Kinesis actions to one EMR job role in Account A.
 
-```mermaid
-architecture-beta
-  accTitle: Cross-account Kinesis streaming with EMR
-  accDescr: EMR Spark reads the source stream in the producer account and writes by ARN to the analytics stream in another account. DynamoDB and S3 store connector and Spark state.
-
-  group producer(cloud)[Producer account]
-  group analytics(cloud)[Analytics account]
-
-  service source(logos:aws-kinesis)[Kinesis source stream] in producer
-  service emr(logos:apache-spark)[EMR Spark] in producer
-  service checkpoint(logos:aws-dynamodb)[DynamoDB connector state] in producer
-  service sparkstate(logos:aws-s3)[S3 Spark checkpoint] in producer
-  service destination(logos:aws-kinesis)[Kinesis analytics stream] in analytics
-  service glue(logos:aws-glue)[AWS Glue Streaming] in analytics
-
-  source:R --> L:emr
-  checkpoint:T --> B:emr
-  sparkstate:T --> B:emr
-  emr:R --> L:destination
-  destination:R --> L:glue
-```
-
-*Figure 1. Spark stays beside the source stream and reads it with enhanced fan-out. DynamoDB stores connector state, S3 stores Spark checkpoints, and the SDK writer crosses the account boundary by destination stream ARN before Glue consumes the records.*
+<figure class="architecture-figure">
+  <img src="/diagrams/cross-account-kinesis-emr.svg" width="1200" height="700" loading="lazy" decoding="async" alt="Amazon EMR reads a Kinesis stream in Account A. DynamoDB and Amazon S3 store state. The job writes by stream ARN to a Kinesis stream in Account B, where AWS Glue consumes the records." />
+  <figcaption>Figure 1. Spark stays beside the source stream and reads it with enhanced fan-out. DynamoDB stores connector state. Amazon S3 stores Spark checkpoints. The SDK writer crosses the account boundary by destination stream ARN.</figcaption>
+</figure>
 
 EMR on EKS fit the company in the story because its platform team already operated an EKS cluster. The team registered a namespace as an EMR virtual cluster and assigned the streaming job its own execution role. An organization without that Kubernetes platform could run the same application on a long-running EMR on EC2 cluster.
 
@@ -163,7 +156,7 @@ The engineers assigned the job a named enhanced fan-out consumer. The connector 
 import os
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, struct, to_json
+from pyspark.sql.functions import col, from_json, lit, struct, to_json
 from pyspark.sql.types import LongType, StringType, StructField, StructType
 
 
@@ -244,6 +237,7 @@ def select_outbound(batch):
                 "event_id",
                 "event_type",
                 "event_time_ms",
+                lit(SOURCE_STREAM).alias("source_stream"),
                 "source_sequence_number",
                 "source_arrival_time",
             )
@@ -251,7 +245,7 @@ def select_outbound(batch):
     )
 ```
 
-The source sequence number stayed in each destination record. Spark can replay a micro-batch after a worker failure. Kinesis accepts duplicate writes, so downstream jobs need a stable identity. The event ID and source sequence number provide one.
+The source stream name and sequence number stayed in each destination record. Spark can replay a micro-batch after a worker failure. Kinesis accepts duplicate writes, so downstream jobs need a stable identity. The pair `(source_stream, source_sequence_number)` identifies one source record in this bridge.
 
 `TRIM_HORIZON` served the replay. A planned cutover could use `AT_TIMESTAMP`. The team set `failOnDataLoss` because a shard that expires before Spark reads it should stop the bridge and page an operator.
 
@@ -379,6 +373,10 @@ The callback wrote malformed records to a deterministic S3 path for each `batch_
 
 That recovery creates duplicates when some partitions reached Account B before another partition failed. Apache Spark documents [`foreachBatch` as at-least-once by default](https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html). A transactional sink can use `batch_id` to deduplicate a batch. Kinesis has no batch transaction, so the destination record carries source identity instead.
 
+This writer does not preserve source order. `PutRecords` can accept later entries when an earlier entry fails. Retrying only the failed entries can change their order again. Spark can also run source shards and output partitions at different rates. [AWS states that `PutRecords` does not guarantee record ordering](https://docs.aws.amazon.com/kinesis/latest/APIReference/API_PutRecords.html).
+
+The analytics job stored `(source_stream, source_sequence_number)` in durable deduplication state. It retained that state for longer than the maximum source retention and replay window. An application that requires strict per-key order needs a different writer and a tested partition strategy. It cannot infer the original order from destination arrival time.
+
 The team also kept `spark.speculation` disabled. The [connector warns](https://github.com/awslabs/spark-sql-kinesis-connector) that speculative execution can run two tasks for one shard and create a race.
 
 ## Platform ownership settled the EKS-versus-EC2 choice
@@ -423,6 +421,8 @@ aws emr add-steps \
 
 For EC2, the team would keep primary and baseline core capacity on On-Demand Instances. It could place burst executors on a diversified task fleet. EMR recommends keeping Spark dynamic allocation enabled with [managed scaling](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-scaling.html).
 
+`CANCEL_AND_WAIT` does not restart a failed streaming step. It cancels pending steps and returns the cluster to the `WAITING` state. A supported EC2 deployment therefore needs an external supervisor. The supervisor must alarm on failure and submit a replacement step against the same checkpoint. [The EMR step API defines this failure behavior](https://docs.aws.amazon.com/emr/latest/APIReference/API_StepConfig.html).
+
 ## Before sunrise, engineers rebuilt the dashboard
 
 At 04:02, the first EMR job began reading all 480 shards. Engineers watched four separate clocks:
@@ -439,8 +439,10 @@ The team tested three failures before it closed the incident:
 2. It killed the driver and confirmed that the replacement recovered from the S3 checkpoint.
 3. It throttled one destination shard and confirmed that the writer retried rejected entries.
 
-Those tests also produced duplicates. The Account B job used `(event_id, source_sequence_number)` as its deduplication key and kept the latest arrival for each pair.
+Those tests also produced duplicates. The Account B job used `(source_stream, source_sequence_number)` as its deduplication key. The test confirmed that a replay did not create a second analytics result for the same source record.
 
 At 04:47, consumer lag reached its peak. At 05:19, the line turned down. At 06:08, the enhanced-fan-out consumer reached the stream tip. Fresh traffic then reached Account B inside the latency target.
+
+The team kept the extended retention window until it verified the destination counts and quarantine output. It then restored the normal retention setting. It also deregistered the incident consumer when the permanent bridge received its final consumer name. These actions stopped the temporary retention and enhanced-fan-out charges.
 
 The incident review kept the EMR bridge and removed the Lambda relay. The team recorded two supported deployments: EMR on EKS for organizations that already run a Kubernetes platform, and EMR on EC2 for teams that want a dedicated, long-running Spark cluster. Each keeps distributed compute beside the source when cross-account `AssumeRole` is prohibited, then crosses the account boundary through a stream ARN, a resource policy, and an SDK writer that treats partial failure as part of the protocol.

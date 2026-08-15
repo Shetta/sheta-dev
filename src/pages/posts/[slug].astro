@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Feedback from '../../components/Feedback.astro';
-import MermaidDiagrams from '../../components/MermaidDiagrams.astro';
 import Base from '../../layouts/Base.astro';
 
 export async function getStaticPaths() {
@@ -23,6 +22,7 @@ const nextPost = post.data.nextPost ? postsById.get(post.data.nextPost) : undefi
 const published = post.data.published.toISOString().slice(0, 10);
 const updated = post.data.updated?.toISOString().slice(0, 10);
 const canonicalUrl = new URL(`/posts/${post.id}/`, Astro.site).toString();
+const postImage = post.data.image ?? `/social/${post.id}.png`;
 const prose = (post.body ?? '').replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '');
 const readingMinutes = Math.max(1, Math.ceil(prose.trim().split(/\s+/).length / 220));
 const toc = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
@@ -37,7 +37,7 @@ const jsonLd = {
   url: canonicalUrl,
   author: { '@type': 'Person', name: 'Ahmed Sheta', url: new URL('/about/', Astro.site).toString() },
   keywords: post.data.tags,
-  image: new URL(post.data.image ?? '/social-card.png', Astro.site).toString()
+  image: new URL(postImage, Astro.site).toString()
 };
 ---
 <Base
@@ -48,8 +48,8 @@ const jsonLd = {
   publishedTime={post.data.published.toISOString()}
   modifiedTime={(post.data.updated ?? post.data.published).toISOString()}
   tags={post.data.tags}
-  image={post.data.image}
-  imageAlt={post.data.imageAlt ?? `${post.data.title} — ${post.data.description}`}
+  image={postImage}
+  imageAlt={post.data.imageAlt ?? `Preview image for ${post.data.title}`}
   jsonLd={jsonLd}
 >
   <article>
@@ -77,6 +77,11 @@ const jsonLd = {
         </div>
       )}
     </div>
+    {post.data.scenarioNote && (
+      <aside class="scenario-note" aria-label="Scenario note">
+        <strong>Scenario note:</strong> {post.data.scenarioNote}
+      </aside>
+    )}
     {toc.length >= 4 && (
       <nav class="table-of-contents" aria-labelledby="contents-heading">
         <h2 id="contents-heading">Contents</h2>
@@ -94,8 +99,7 @@ const jsonLd = {
       </aside>
     )}
   </article>
-  <Feedback title={post.data.title} />
-  <MermaidDiagrams />
+  <Feedback title={post.data.title} articleUrl={canonicalUrl} />
   <script>
     document.querySelectorAll<HTMLElement>('article h2[id], article h3[id]').forEach((heading) => {
       if (heading.closest('.table-of-contents, .next-reading')) return;
@@ -104,10 +108,14 @@ const jsonLd = {
       permalink.href = `#${heading.id}`;
       permalink.setAttribute('aria-label', `Permalink to ${heading.textContent ?? 'this section'}`);
       permalink.textContent = '#';
+      const label = document.createElement('span');
+      label.id = `${heading.id}-label`;
+      label.append(...heading.childNodes);
+      heading.setAttribute('aria-labelledby', label.id);
+      heading.append(label);
       heading.append(permalink);
     });
     document.querySelectorAll('article pre').forEach((pre) => {
-      if (pre.querySelector('code.language-mermaid')) return;
       const code = pre.querySelector('code');
       if (!code) return;
       const language = [...code.classList].find((name) => name.startsWith('language-'))?.slice(9) ?? 'text';
@@ -120,8 +128,12 @@ const jsonLd = {
       button.textContent = 'Copy';
       button.setAttribute('aria-label', `Copy ${language} code`);
       button.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(code.textContent ?? '');
-        button.textContent = 'Copied';
+        try {
+          await navigator.clipboard.writeText(code.textContent ?? '');
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Copy failed';
+        }
         window.setTimeout(() => { button.textContent = 'Copy'; }, 1500);
       });
       toolbar.append(label, button);

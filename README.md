@@ -1,6 +1,6 @@
 # blog.sheta.dev
 
-Text-first Astro blog for `https://blog.sheta.dev` with Markdown delivery for software agents.
+This repository contains the Astro source for `https://blog.sheta.dev`. The site serves HTML to readers and Markdown to software agents.
 
 ## Local development
 
@@ -11,30 +11,43 @@ npm run dev
 
 Open `http://localhost:4321`.
 
-## Build
+The development command generates the architecture diagrams and social cards before Astro starts.
+
+## Build and validation
 
 ```bash
-npm run build
+npm run validate
 ```
 
-The static site is emitted to `dist/`.
+The validation command checks Astro types, builds the site, checks local links and metadata, and tests the content-negotiation Worker.
+
+Two additional checks use the network:
+
+```bash
+npm run check:links
+npm run validate:live
+```
+
+The first command checks external article citations. The second command checks the deployed 404 page, security headers, Markdown negotiation, and canonical headers. GitHub Actions runs these network checks each week.
 
 ## Accessibility
 
-The colour-theme control supports system, light, dark, and high-contrast modes. Code highlighting ships with separate high-contrast light and dark palettes, so it does not rely on a dark palette in light mode.
+The colour-theme control supports system, light, dark, and high-contrast modes. Code highlighting includes separate light and dark palettes.
 
-The “Read page aloud” control uses the browser's built-in Web Speech API. Readers can preview and choose among the English voices exposed by their browser or operating system. Network voices and voices labelled natural, enhanced, premium, or neural are preferred, and content is spoken in semantic sections for better pacing. Voice availability and quality still depend on the reader's device. Speech does not call the Worker or add a paid text-to-speech service. A consistently neural voice would require a cloud text-to-speech provider, add network and privacy considerations, and may add usage cost.
+The “Read page aloud” control uses the browser's Web Speech API. The reader can select an English voice that the browser or operating system provides. The site does not send article text to a text-to-speech service.
+
+Architecture diagrams are static SVG images. Each article supplies alternative text and a visible caption. Image dimensions reserve layout space before the browser loads the file.
 
 ## Cloudflare Workers
 
-The repository deploys static assets and a small content-negotiation Worker with `wrangler.jsonc`.
+The repository deploys static assets and a small content-negotiation Worker. The configuration is in `wrangler.jsonc`.
 
 ```bash
 npm run build
 npx wrangler deploy
 ```
 
-The production custom domain is `blog.sheta.dev`. The Worker in `worker/index.js` serves Markdown when a post request includes `Accept: text/markdown`.
+The Worker serves the custom 404 page when a static asset does not exist. It also adds security and indexing headers from `public/_headers`.
 
 ## Agent retrieval
 
@@ -44,7 +57,7 @@ Human HTML:
 curl https://blog.sheta.dev/posts/why-this-site-is-plain/
 ```
 
-Same clean URL as Markdown:
+Markdown from the same URL:
 
 ```bash
 curl -H "Accept: text/markdown" \
@@ -64,6 +77,8 @@ curl https://blog.sheta.dev/llms.txt
 curl https://blog.sheta.dev/llms-full.txt
 ```
 
+Markdown responses identify the HTML page with an HTTP canonical `Link` header. The content signal permits search and reference use. It does not permit AI training.
+
 ## Add a post
 
 Create `src/content/posts/my-post.md`:
@@ -74,43 +89,37 @@ title: "My post"
 description: "One-sentence summary."
 published: 2026-08-13
 tags: [systems]
-# Optional: identify the intended reader and connect related posts.
-level: intermediate # beginner, intermediate, or advanced
+level: intermediate
 series: "Systems notes"
 prerequisites: [an-earlier-post]
 nextPost: the-next-post
-# Optional: override the default link-preview card with a 1200x630 PNG.
-# image: /images/my-post-card.png
-# imageAlt: "A concise description of the preview image."
 ---
 
 Write Markdown here.
 ```
 
-The build creates `/posts/my-post/` and `/posts/my-post.md`, then adds the post to `/llms.txt`, `/llms-full.txt`, RSS, and the sitemap.
+Use post slugs without `/posts/` in `prerequisites` and `nextPost`. The build checks those links and adds the post to RSS, the sitemap, and the agent indexes.
 
-`prerequisites` and `nextPost` contain post slugs without `/posts/`. The HTML page links each referenced post. Markdown and agent indexes retain the reading level and series metadata.
+The asset build creates a 1200 by 630 social card for each post. Set `image` and `imageAlt` in the frontmatter only when a post needs another preview image.
 
-Shared links include Open Graph and X/Twitter large-card metadata. By default they use `public/social-card.png`, which the development and build scripts generate from `src/assets/social-card.svg`. Set `image` and `imageAlt` in a post's frontmatter when it needs a custom preview. Use an absolute URL or a root-relative path to a 1200×630 PNG.
+## Add an AWS architecture diagram
 
-## Add a Mermaid diagram
+Use the current official [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/). Do not load an icon library or diagram renderer in the reader's browser.
 
-Use a fenced `mermaid` block in a post. The browser renders the diagram on the HTML page. The Markdown endpoint retains the diagram source.
+Copy only the required SVG icons to `src/assets/aws-architecture-icons/<release-date>/`. Record the package release in `src/assets/aws-architecture-icons/README.md`.
 
-AWS architecture diagrams use `architecture-beta` and the registered Iconify `logos` pack. Do not represent an AWS service with a generic flowchart box.
+Add the diagram layout to `scripts/generate-diagrams.mjs`. The output must include a `<title>`, a `<desc>`, visible service labels, and a white background. The article must use a `<figure>` with fixed image dimensions, alternative text, and a caption.
 
-````text
-```mermaid
-architecture-beta
-  group aws(cloud)[AWS]
-  service source(logos:aws-kinesis)[Kinesis] in aws
-  service job(logos:apache-spark)[EMR Spark] in aws
-  source:R --> L:job
+Generate and inspect the files:
+
+```bash
+npm run diagrams
 ```
-````
 
-The browser loads pinned Mermaid and Iconify modules from jsDelivr. Diagrams are re-rendered with explicit light, dark, or high-contrast colours when the site theme changes. Add an `accTitle` and `accDescr` to each diagram that needs an accessible name and description. If Mermaid or the AWS icon pack does not load, or a diagram cannot render, the page shows its source block as a fallback.
+AWS publishes icon packages during the first three quarters of each year. Review the stored icons after each release.
 
-## Reader feedback
+## Publishing policy and reader feedback
 
-Each post links to the repository's Ideas discussion category and content-correction issue form. Keep Discussions enabled in the repository settings. The Ideas form lives in `.github/DISCUSSION_TEMPLATE/ideas.yml` and must match the `ideas` category slug.
+The public policy page records scenario labels, content-use preferences, privacy details, and correction practices.
+
+Each post links to the repository's Ideas discussion category and content-correction issue form. Both actions require GitHub sign-in. Keep Discussions enabled and keep the `ideas` category slug unchanged.

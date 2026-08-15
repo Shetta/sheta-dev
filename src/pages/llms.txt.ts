@@ -29,6 +29,7 @@ export const GET: APIRoute = async ({ site }) => {
   return new Response(body, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
+      'Content-Signal': 'search=yes, ai-train=no, ai-input=yes, use=reference',
       'Cache-Control': 'public, max-age=300'
     }
   });
