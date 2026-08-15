@@ -36,6 +36,8 @@ for (const [name, body] of Object.entries(files)) {
 
 assert(files.home.includes('>blog.sheta.dev</a>'), 'masthead does not identify the blog host');
 assert(files.home.includes(`rel="canonical" href="${canonicalHost}/"`), 'home canonical is missing');
+assert(files.home.includes('Distributed systems, AWS, and data infrastructure | Ahmed Sheta'), 'home title is not descriptive');
+assert(files.home.includes('/posts/aws-for-beginners-one-file-upload/'), 'home does not link to the beginner guide');
 assert(files.about.includes(`rel="canonical" href="${canonicalHost}/about/"`), 'about canonical is wrong');
 assert(files.about.includes('"@type":"Person"'), 'about Person JSON-LD is missing');
 assert(files.posts.includes(`rel="canonical" href="${canonicalHost}/posts/"`), 'posts canonical is wrong');
@@ -69,11 +71,18 @@ for (const slug of postDirectories) {
   assert(html.includes(`name="twitter:image" content="${canonicalHost}/social-card.png"`), `${slug} Twitter image is missing`);
   assert(html.includes('"@type":"BlogPosting"'), `${slug} BlogPosting JSON-LD is missing`);
   assert(html.includes('rel="alternate" type="text/markdown"'), `${slug} Markdown alternate is missing`);
+  assert(html.includes('By <a href="/about/">Ahmed Sheta</a>'), `${slug} visible author link is missing`);
+  assert(html.includes('What should I explain next?'), `${slug} feedback prompt is missing`);
+  assert(html.includes('discussions/new?category=ideas'), `${slug} topic suggestion link is missing`);
   assert(files.rss.includes(`<link>${canonical}</link>`), `${slug} is missing from RSS`);
   assert(files.sitemap.includes(`<loc>${canonical}</loc>`), `${slug} is missing from the sitemap`);
 }
 
 const architecturePost = await read('posts/the-replay-that-outgrew-the-cross-account-relay.md');
+const beginnerPost = await read('posts/aws-for-beginners-one-file-upload.md');
+assert(beginnerPost.includes('level: beginner'), 'beginner post level is missing from Markdown');
+assert(beginnerPost.includes('nextPost: the-replay-that-outgrew-the-cross-account-relay'), 'beginner post next link is missing');
+assert(architecturePost.includes('prerequisites: ["aws-for-beginners-one-file-upload"]'), 'architecture prerequisite is missing');
 for (const icon of ['aws-kinesis', 'apache-spark', 'aws-dynamodb', 'aws-s3', 'aws-glue']) {
   assert(architecturePost.includes(`logos:${icon}`), `architecture post is missing the ${icon} icon`);
 }

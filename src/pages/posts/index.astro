@@ -11,9 +11,10 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft))
     {posts.map((post) => (
       <li>
         <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
-        <time class="muted" datetime={post.data.published.toISOString()}>
-          {post.data.published.toISOString().slice(0, 10)}
-        </time>
+        <div class="muted">
+          <span class="level">{post.data.level}</span> ·
+          <time datetime={post.data.published.toISOString()}>{post.data.published.toISOString().slice(0, 10)}</time>
+        </div>
         <p>{post.data.description}</p>
       </li>
     ))}

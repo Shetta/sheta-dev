@@ -1,18 +1,21 @@
-<aside class="accessibility-tools" aria-label="Accessibility tools">
-  <label for="colour-theme">Colour theme</label>
-  <select id="colour-theme">
-    <option value="system">System</option>
-    <option value="light">Light</option>
-    <option value="dark">Dark</option>
-    <option value="contrast">High contrast</option>
-  </select>
-  <button id="read-page" type="button" aria-pressed="false">Read page aloud</button>
-  <button id="stop-reading" type="button" hidden>Stop reading</button>
-  <label id="voice-label" for="reading-voice" hidden>Voice</label>
-  <select id="reading-voice" hidden></select>
-  <button id="preview-voice" type="button" hidden>Preview voice</button>
-  <span id="speech-status" class="visually-hidden" role="status" aria-live="polite"></span>
-</aside>
+<details class="reading-options">
+  <summary>Reading options</summary>
+  <aside class="accessibility-tools" aria-label="Accessibility tools">
+    <label for="colour-theme">Colour theme</label>
+    <select id="colour-theme">
+      <option value="system">System</option>
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="contrast">High contrast</option>
+    </select>
+    <button id="read-page" type="button" aria-pressed="false">Read page aloud</button>
+    <button id="stop-reading" type="button" hidden>Stop reading</button>
+    <label id="voice-label" for="reading-voice" hidden>Voice</label>
+    <select id="reading-voice" hidden></select>
+    <button id="preview-voice" type="button" hidden>Preview voice</button>
+    <span id="speech-status" class="visually-hidden" role="status" aria-live="polite"></span>
+  </aside>
+</details>
 
 <script>
   const theme = document.querySelector<HTMLSelectElement>('#colour-theme');

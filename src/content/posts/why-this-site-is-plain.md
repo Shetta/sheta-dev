@@ -3,6 +3,7 @@ title: "Why this site is plain"
 description: "A plain blog built for durable ideas, stable URLs, readable text, and copyable code."
 published: 2026-08-13
 tags: [meta, web]
+level: beginner
 ---
 
 This site preserves technical ideas in plain text, stable URLs, and copyable code.

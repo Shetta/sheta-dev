@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ site }) => {
     '',
     '## Posts',
     '',
-    ...posts.map((post) => `- [${post.data.title}](${siteUrl(site, `/posts/${post.id}.md`)}): ${post.data.description}`),
+    ...posts.map((post) => `- [${post.data.title}](${siteUrl(site, `/posts/${post.id}.md`)}) [${post.data.level}]: ${post.data.description}`),
     ''
   ].join('\n');
 

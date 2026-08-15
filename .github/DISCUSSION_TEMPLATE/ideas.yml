@@ -1,0 +1,36 @@
+title: "[Topic]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest a subject for a future post. Do not include private or confidential information.
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you want to understand?
+      description: Ask one question or name one subject.
+      placeholder: How does an AWS request move between two accounts?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: What are you building or learning?
+      description: Give enough context to show why the subject matters to you.
+    validations:
+      required: true
+  - type: dropdown
+    id: experience
+    attributes:
+      label: How familiar are you with the subject?
+      options:
+        - I am new to it
+        - I know the basic terms
+        - I use it at work
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Optional links or examples
+      description: Add public sources, error messages, or examples that clarify the request.
