@@ -39,6 +39,8 @@ for (const [name, body] of Object.entries(files)) {
 assert(files.home.includes('>blog.sheta.dev</a>'), 'masthead does not identify the blog host');
 assert(files.home.includes(`rel="canonical" href="${canonicalHost}/"`), 'home canonical is missing');
 assert(files.home.includes('Software systems, data infrastructure, and reliability | Ahmed Sheta'), 'home title is not descriptive');
+assert(files.home.includes('rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"'), 'PNG favicon metadata is missing');
+assert(files.home.includes('rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"'), 'Apple touch icon metadata is missing');
 assert(files.home.includes('/posts/aws-for-beginners-one-file-upload/'), 'home does not link to the beginner guide');
 assert(files.about.includes(`rel="canonical" href="${canonicalHost}/about/"`), 'about canonical is wrong');
 assert(files.about.includes('"@type":"Person"'), 'about Person JSON-LD is missing');
@@ -71,10 +73,10 @@ for (const slug of postDirectories) {
   assert(html.includes(`rel="canonical" href="${canonical}"`), `${slug} canonical is wrong`);
   assert(html.includes('<meta property="og:type" content="article">'), `${slug} article Open Graph type is missing`);
   assert(html.includes('property="article:published_time"'), `${slug} published metadata is missing`);
-  assert(html.includes(`property="og:image" content="${canonicalHost}/social/${slug}.png"`), `${slug} article Open Graph image is missing`);
+  assert(html.includes(`property="og:image" content="${canonicalHost}/social/v2/${slug}.png"`), `${slug} article Open Graph image is missing`);
   assert(html.includes('property="og:image:width" content="1200"'), `${slug} Open Graph image dimensions are missing`);
   assert(html.includes('name="twitter:card" content="summary_large_image"'), `${slug} Twitter metadata is missing`);
-  assert(html.includes(`name="twitter:image" content="${canonicalHost}/social/${slug}.png"`), `${slug} article Twitter image is missing`);
+  assert(html.includes(`name="twitter:image" content="${canonicalHost}/social/v2/${slug}.png"`), `${slug} article Twitter image is missing`);
   assert(html.includes('"@type":"BlogPosting"'), `${slug} BlogPosting JSON-LD is missing`);
   assert(html.includes('rel="alternate" type="text/markdown"'), `${slug} Markdown alternate is missing`);
   assert(html.includes('By <a href="/about/">Ahmed Sheta</a>'), `${slug} visible author link is missing`);
@@ -98,8 +100,11 @@ assert(!files.corpus.includes('```mermaid'), 'agent corpus still contains runtim
 await access(new URL('diagrams/s3-control-data-planes.svg', dist));
 await access(new URL('diagrams/cross-account-kinesis-emr.svg', dist));
 for (const slug of postDirectories) {
-  await access(new URL(`social/${slug}.png`, dist));
+  await access(new URL(`social/v2/${slug}.png`, dist));
 }
+await access(new URL('favicon-32.png', dist));
+await access(new URL('apple-touch-icon.png', dist));
+await access(new URL('icon-192.png', dist));
 
 for (const [page, html] of htmlDocuments) {
   const localLinks = [...html.matchAll(/(?:href|src)="(\/[^"#?]*)/g)]

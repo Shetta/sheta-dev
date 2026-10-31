@@ -4,15 +4,30 @@ import sharp from 'sharp';
 
 const source = new URL('../src/assets/social-card.svg', import.meta.url);
 const output = new URL('../public/social-card.png', import.meta.url);
+const iconSource = new URL('../public/favicon.svg', import.meta.url);
 const svg = await readFile(source);
 
-await sharp(svg)
-  .resize(1200, 630)
-  .png({ compressionLevel: 9 })
-  .toFile(fileURLToPath(output));
+await Promise.all([
+  sharp(svg)
+    .resize(1200, 630)
+    .png({ compressionLevel: 9 })
+    .toFile(fileURLToPath(output)),
+  sharp(fileURLToPath(iconSource))
+    .resize(32, 32)
+    .png({ compressionLevel: 9 })
+    .toFile(fileURLToPath(new URL('../public/favicon-32.png', import.meta.url))),
+  sharp(fileURLToPath(iconSource))
+    .resize(180, 180)
+    .png({ compressionLevel: 9 })
+    .toFile(fileURLToPath(new URL('../public/apple-touch-icon.png', import.meta.url))),
+  sharp(fileURLToPath(iconSource))
+    .resize(192, 192)
+    .png({ compressionLevel: 9 })
+    .toFile(fileURLToPath(new URL('../public/icon-192.png', import.meta.url)))
+]);
 
 const postsRoot = new URL('../src/content/posts/', import.meta.url);
-const cardsRoot = new URL('../public/social/', import.meta.url);
+const cardsRoot = new URL('../public/social/v2/', import.meta.url);
 await mkdir(cardsRoot, { recursive: true });
 
 function field(frontmatter, name) {
@@ -68,6 +83,8 @@ function articleCard(title, level, tags) {
     <circle cx="142" cy="119" r="10" fill="#94a3b8"/>
     <circle cx="174" cy="119" r="10" fill="#475569"/>
     <text x="600" y="129" text-anchor="middle" fill="#cbd5e1" font-family="DejaVu Sans Mono, monospace" font-size="26">blog.sheta.dev</text>
+    <rect x="1020" y="86" width="72" height="66" rx="14" fill="#0f172a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="1056" y="130" text-anchor="middle" fill="#f8fafc" font-family="DejaVu Sans Mono, monospace" font-size="27" font-weight="700">AS</text>
     ${titleMarkup}
     <path d="M108 482H1092" stroke="#475569" stroke-width="2"/>
     <text x="108" y="528" fill="#93c5fd" font-family="DejaVu Sans Mono, monospace" font-size="24">Ahmed Sheta · ${escapeXml(level)}</text>

@@ -48,6 +48,9 @@ const imageUrl = siteUrl(Astro.site, image);
     <title>{fullTitle}</title>
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={rssUrl} />
     {markdownAbsoluteUrl && <link rel="alternate" type="text/markdown" href={markdownAbsoluteUrl} />}
     <meta property="og:type" content={type} />
