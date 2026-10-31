@@ -6,19 +6,28 @@ const jsonLd = {
   name: 'Ahmed Sheta',
   url: new URL('/about/', Astro.site).toString(),
   jobTitle: 'Software engineer',
+  worksFor: { '@type': 'Organization', name: 'Amazon Web Services' },
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'Cairo University' },
+    { '@type': 'CollegeOrUniversity', name: 'Goldsmiths, University of London' }
+  ],
   sameAs: ['https://github.com/Shetta'],
   knowsAbout: ['Distributed systems', 'Data infrastructure', 'Reliability', 'Software architecture']
 };
 ---
-<Base title="About" description="About Ahmed Sheta's software engineering work, education, and public technical notebook." jsonLd={jsonLd}>
+<Base title="About" description="About Ahmed Sheta's work at AWS, education, and public technical notebook." jsonLd={jsonLd}>
   <h1>About</h1>
   <p>
-    I'm Ahmed Sheta, a software engineer based in Seattle. I grew up in Egypt.
+    I'm Ahmed Sheta, a software engineer based in Seattle. I grew up in Egypt and now work at
+    AWS.
   </p>
   <p>
     I studied accounting and started my career in business and analytics. I later moved into
-    business intelligence, data engineering, and software engineering. My work includes systems
-    at Amazon and AWS. I also studied computer science at Georgia Tech.
+    business intelligence, data engineering, and software engineering.
+  </p>
+  <p>
+    I graduated from Cairo University and Goldsmiths, University of London. I am pursuing
+    postgraduate study at the University of Edinburgh.
   </p>
   <p>
     I focus on distributed systems, streaming data, reliability, databases, data platforms,
@@ -42,3 +51,4 @@ const jsonLd = {
   </p>
   <p><a href="/policies/">Read the publishing and site policy.</a></p>
 </Base>
+
