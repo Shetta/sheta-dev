@@ -127,20 +127,26 @@ CONSTANT Workers = {w1, w2}
 
 SPECIFICATION Spec
 
+CHECK_DEADLOCK FALSE
+
 INVARIANT TypeOK
 INVARIANT AtMostOnce
 ```
+
+The workers eventually reach `Done`, where no `Next` action is enabled. `CHECK_DEADLOCK FALSE` treats that terminal state as expected termination.
 
 The model admits the same failure as the Python code:
 
 ```text
 w1 reads completed = FALSE
-w2 reads completed = FALSE
 w1 increments effects to 1
+w2 reads completed = FALSE
 w2 increments effects to 2
 ```
 
 This is more useful than saying that concurrency is difficult. The trace identifies the permitted steps that violate `AtMostOnce`.
+
+TLC 2.17 generated 16 states and found 13 distinct states. It reported the invariant violation at depth 5.
 
 It is also a bounded result. TLC checks the finite instance supplied in the model, not every possible deployment size. The distinction between a TLA+ specification and a finite TLC model is explicit in the [TLA+ documentation](https://lamport.azurewebsites.net/tla/model-popup.html).
 
@@ -189,9 +195,29 @@ Next ==
 
 Spec == Init /\ [][Next]_vars
 
+TypeOK ==
+    /\ pc \in [Workers -> {"Claim", "Apply", "Complete", "Done"}]
+    /\ state \in {"pending", "claimed", "completed"}
+    /\ effects \in Nat
+
 AtMostOnce == effects <= 1
 =============================================================================
 ```
+
+The corrected model uses this configuration for the two-worker instance:
+
+```tla
+CONSTANT Workers = {w1, w2}
+
+SPECIFICATION Spec
+
+CHECK_DEADLOCK FALSE
+
+INVARIANT TypeOK
+INVARIANT AtMostOnce
+```
+
+TLC 2.17 found no error in instances with one through four workers. The four-worker instance generated 193 states and found 80 distinct states at depth 7.
 
 Only the worker that changes `state` from `pending` to `claimed` reaches `Apply`. The design excludes the earlier double-effect trace.
 
@@ -269,6 +295,8 @@ method WithdrawWithFee(
 
 Dafny can check the implementation against that contract. It cannot decide whether declining the transaction is the intended product rule. Perhaps the system should waive the fee, permit an overdraft, or debit a second account. Strengthening a precondition can make verification succeed by excluding the case the business actually needed us to handle.
 
+Dafny 4.11.0 rejects the first method because the assigned value may not satisfy the `nat` constraint. It verifies the corrected method with one verified method and no errors.
+
 ## Proof assistants check derivations, not intentions
 
 A proof assistant provides another boundary. Lean elaborates definitions and proof scripts into terms checked by a small kernel. The [Lean reference manual](https://lean-lang.org/doc/reference/latest/Elaboration-and-Compilation/#the-kernel) describes the kernel as the trusted type checker for Lean's core theory.
@@ -343,11 +371,11 @@ The verifier should be the authority on whether a proof checks. The language mod
 
 A precise report for the first model would look like this:
 
-> TLC found a counterexample to `AtMostOnce` in a model with two workers whose read, effect, and completion steps may interleave.
+> TLC 2.17 found a counterexample to `AtMostOnce` at depth 5. The model used two workers whose read, effect, and completion steps may interleave.
 
 After checking the corrected model over stated finite instances, the corresponding report should say:
 
-> TLC found no violation of `AtMostOnce` in the checked finite instances after the model introduced an atomic claim. Crash recovery and correspondence with the external payment provider remain outside that result.
+> TLC 2.17 found no violation of `TypeOK` or `AtMostOnce` with one through four workers. The model used an atomic claim and treated `Done` as a terminal state. Crash recovery and correspondence with the payment provider remain outside this result.
 
 That wording is less impressive than “proved correct.” It is also evidence an engineer can evaluate.
 
@@ -369,4 +397,5 @@ It still cannot choose the theorem for us.
 4. Dafny: [Getting started: preconditions and postconditions](https://dafny.org/latest/OnlineTutorial/guide)
 5. Lean: [The kernel](https://lean-lang.org/doc/reference/latest/Elaboration-and-Compilation/#the-kernel)
 6. Lean: [Validating a Lean proof](https://lean-lang.org/doc/reference/latest/ValidatingProofs/)
+
 
