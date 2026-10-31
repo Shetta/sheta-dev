@@ -2,7 +2,7 @@
 title: "The replay that outgrew the cross-account relay"
 description: "A documented composite of a high-volume Kinesis replay across AWS accounts, with Amazon EMR deployment trade-offs."
 published: 2026-08-13
-updated: 2026-08-15
+updated: 2026-10-31
 tags: [aws, emr, kinesis, spark, eks, architecture]
 level: advanced
 series: "AWS production architecture"
@@ -238,6 +238,7 @@ def select_outbound(batch):
                 "event_type",
                 "event_time_ms",
                 lit(SOURCE_STREAM).alias("source_stream"),
+                "source_partition_key",
                 "source_sequence_number",
                 "source_arrival_time",
             )
@@ -245,7 +246,7 @@ def select_outbound(batch):
     )
 ```
 
-The source stream name and sequence number stayed in each destination record. Spark can replay a micro-batch after a worker failure. Kinesis accepts duplicate writes, so downstream jobs need a stable identity. The pair `(source_stream, source_sequence_number)` identifies one source record in this bridge.
+The bridge kept the source stream name, partition key, and sequence number in each destination record for traceability. Spark can replay a micro-batch after a worker failure. A producer retry can also create two Kinesis records with different sequence numbers. The analytics job therefore used `(tenant_id, event_id)` as its deduplication key. Producers had to keep `event_id` stable when they retried one logical event. [AWS recommends embedding a primary key in each record](https://docs.aws.amazon.com/streams/latest/dev/kinesis-record-processor-duplicates.html).
 
 `TRIM_HORIZON` served the replay. A planned cutover could use `AT_TIMESTAMP`. The team set `failOnDataLoss` because a shard that expires before Spark reads it should stop the bridge and page an operator.
 
@@ -253,7 +254,7 @@ The source stream name and sequence number stayed in each destination record. Sp
 
 The built-in connector can write to Kinesis, but its sink configuration accepts a stream name. Kinesis tells cross-account producers to use the AWS SDK and a stream ARN. The SDK also exposes the result the team needed: [`PutRecords` can return HTTP 200 while individual records fail](https://docs.aws.amazon.com/kinesis/latest/APIReference/API_PutRecords.html).
 
-The writer opened one Kinesis client for each Spark partition, respected both the 500-record and 10 MiB request limits, and retried failed entries:
+The writer opened one Kinesis client for each Spark partition. It enforced the 500-record limit and both 10 MiB byte limits. It retried only failed entries:
 
 ```python
 import random
@@ -266,7 +267,8 @@ from botocore.config import Config
 
 MAX_PUT_ATTEMPTS = 8
 MAX_PUT_RECORDS = 500
-MAX_PUT_BYTES = 10 * 1024 * 1024
+MAX_RECORD_BYTES = 10 * 1024 * 1024
+MAX_REQUEST_BYTES = 10 * 1024 * 1024
 
 
 def put_batches(records: Iterable[dict]):
@@ -275,12 +277,12 @@ def put_batches(records: Iterable[dict]):
 
     for record in records:
         record_bytes = len(record["Data"]) + len(record["PartitionKey"].encode("utf-8"))
-        if record_bytes > MAX_PUT_BYTES:
+        if record_bytes > MAX_RECORD_BYTES:
             raise ValueError(f"Kinesis record is {record_bytes} bytes")
 
         if batch and (
             len(batch) == MAX_PUT_RECORDS
-            or batch_bytes + record_bytes > MAX_PUT_BYTES
+            or batch_bytes + record_bytes > MAX_REQUEST_BYTES
         ):
             yield batch
             batch = []
@@ -369,13 +371,13 @@ query = (
 query.awaitTermination()
 ```
 
-The callback wrote malformed records to a deterministic S3 path for each `batch_id`. A retry overwrote that path instead of adding another quarantine copy. The AWS SDK handled request failures. The loop handled record failures inside a successful request. If one Spark partition exhausted its attempts, the exception failed the micro-batch. Spark left the source offsets uncommitted and ran the batch again.
+The callback wrote malformed records to a deterministic S3 path for each `batch_id`. A retry overwrote that path instead of adding another quarantine copy. The AWS SDK handled request failures. The loop handled record failures inside a successful request. If one Spark partition exhausted its attempts, the exception failed the query and left the micro-batch uncommitted. The EMR retry policy or an external supervisor then had to restart the query from the same checkpoint. Spark reprocessed the uncommitted batch after that restart.
 
 That recovery creates duplicates when some partitions reached Account B before another partition failed. Apache Spark documents [`foreachBatch` as at-least-once by default](https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html). A transactional sink can use `batch_id` to deduplicate a batch. Kinesis has no batch transaction, so the destination record carries source identity instead.
 
 This writer does not preserve source order. `PutRecords` can accept later entries when an earlier entry fails. Retrying only the failed entries can change their order again. Spark can also run source shards and output partitions at different rates. [AWS states that `PutRecords` does not guarantee record ordering](https://docs.aws.amazon.com/kinesis/latest/APIReference/API_PutRecords.html).
 
-The analytics job stored `(source_stream, source_sequence_number)` in durable deduplication state. It retained that state for longer than the maximum source retention and replay window. An application that requires strict per-key order needs a different writer and a tested partition strategy. It cannot infer the original order from destination arrival time.
+The analytics job stored `(tenant_id, event_id)` in durable deduplication state. It retained that state for longer than the maximum source retention and replay window. The source stream, partition key, and sequence number remained diagnostic metadata. An application that requires strict per-key order needs a different writer and a tested partition strategy. It cannot infer the original order from destination arrival time.
 
 The team also kept `spark.speculation` disabled. The [connector warns](https://github.com/awslabs/spark-sql-kinesis-connector) that speculative execution can run two tasks for one shard and create a race.
 
@@ -439,7 +441,7 @@ The team tested three failures before it closed the incident:
 2. It killed the driver and confirmed that the replacement recovered from the S3 checkpoint.
 3. It throttled one destination shard and confirmed that the writer retried rejected entries.
 
-Those tests also produced duplicates. The Account B job used `(source_stream, source_sequence_number)` as its deduplication key. The test confirmed that a replay did not create a second analytics result for the same source record.
+Those tests also produced duplicates. The Account B job used `(tenant_id, event_id)` as its deduplication key. The test confirmed that a replay did not create a second analytics result for the same logical event.
 
 At 04:47, consumer lag reached its peak. At 05:19, the line turned down. At 06:08, the enhanced-fan-out consumer reached the stream tip. Fresh traffic then reached Account B inside the latency target.
 

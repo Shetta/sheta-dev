@@ -2,7 +2,7 @@
 title: "How AWS handles one file upload"
 description: "Use an S3 upload to understand AWS control planes, data planes, accounts, Regions, IAM, APIs, and cost."
 published: 2026-08-15
-updated: 2026-08-15
+updated: 2026-10-31
 tags: [aws, beginners, s3, iam, cloud, control-plane, data-plane]
 level: beginner
 series: "Cloud systems"
@@ -56,7 +56,7 @@ An AWS account owns resources and connects them to identities and billing. AWS t
 
 If an identity in one account requests an object from another account, the request crosses an account boundary. The resource owner must allow that access. A cross-account request does not imply a different Region or a different company.
 
-Each account has a root user with complete access. Register multi-factor authentication for that user. Reserve it for tasks that require root credentials. Use a separate administrative identity for daily work, and do not create root access keys. [AWS lists its root-user practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html).
+An AWS account starts with a root user. Do not use the root user for daily work, and do not create root access keys. Secure root sign-in with multi-factor authentication when the account retains root credentials. In AWS Organizations, remove root credentials from member accounts when you use centralized root access. [AWS lists its root-user practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html).
 
 ## The Region sets a location boundary
 
@@ -110,7 +110,7 @@ A managed service removes specified operational tasks. It does not make each cus
 
 You can read this article without an AWS account. If you use an account, secure it before the exercise. AWS provides a [setup guide for a new environment](https://docs.aws.amazon.com/hands-on/latest/setup-environment/setup-environment.html).
 
-Use an administrative identity for this procedure. Do not use the root user.
+Use a non-root identity that can create and delete the test bucket and object.
 
 1. Open the Amazon S3 console.
 2. Record the selected Region.
