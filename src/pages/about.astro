@@ -5,40 +5,40 @@ const jsonLd = {
   '@type': 'Person',
   name: 'Ahmed Sheta',
   url: new URL('/about/', Astro.site).toString(),
-  jobTitle: 'Software and data engineer',
+  jobTitle: 'Software engineer',
   sameAs: ['https://github.com/Shetta'],
   knowsAbout: ['Distributed systems', 'Data infrastructure', 'Reliability', 'Software architecture']
 };
 ---
-<Base title="About" description="About Ahmed Sheta, his engineering work, studies, and public technical notebook." jsonLd={jsonLd}>
+<Base title="About" description="About Ahmed Sheta's software engineering work, education, and public technical notebook." jsonLd={jsonLd}>
   <h1>About</h1>
   <p>
-    I'm Ahmed Sheta, a software and data engineer in Seattle. I grew up in Egypt.
+    I'm Ahmed Sheta, a software engineer based in Seattle. I grew up in Egypt.
   </p>
   <p>
-    I started in business and analytics, and I studied accounting. I later moved into
-    business intelligence, data engineering, and software engineering. My work includes
-    systems at Amazon and AWS. I studied computer science at Georgia Tech.
+    I studied accounting and started my career in business and analytics. I later moved into
+    business intelligence, data engineering, and software engineering. My work includes systems
+    at Amazon and AWS. I also studied computer science at Georgia Tech.
   </p>
   <p>
-    I work on distributed systems, streaming data, reliability, databases, data platforms,
-    and production operations. I also study systems architecture, mathematics, physics,
-    music, and chess.
+    I focus on distributed systems, streaming data, reliability, databases, data platforms,
+    and production operations. I also study systems architecture, mathematics, physics, music,
+    and chess.
   </p>
   <p>
-    This site is my public technical notebook. I document architecture decisions,
-    production failures, experiments, and technical questions. Some posts present complete
-    arguments. Other posts record unfinished work.
+    This site is my public technical notebook. I document architecture decisions, production
+    failures, experiments, and technical questions. Some posts contain complete arguments.
+    Other posts record unfinished work.
   </p>
   <p>
     I write in a personal capacity. The views on this site do not represent a current or former
     employer. Composite and illustrative scenarios carry a label before the scenario starts.
   </p>
   <p>
-    I keep the site plain so pages load fast and code remains readable. Each post works in
-    a browser and as Markdown. You can use its Markdown URL or send
-    <code>Accept: text/markdown</code>. The
-    <a href="/llms.txt">/llms.txt</a> provides a compact index.
+    I keep the site plain. Pages load fast, and code remains readable. You can read each post
+    in a browser or as Markdown. Use the post's Markdown URL or send
+    <code>Accept: text/markdown</code>. The <a href="/llms.txt">/llms.txt</a> file provides a
+    compact index.
   </p>
   <p><a href="/policies/">Read the publishing and site policy.</a></p>
 </Base>

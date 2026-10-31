@@ -17,12 +17,12 @@
     "validate": "npm run check && npm run build && node scripts/validate-build.mjs && node scripts/validate-worker.mjs"
   },
   "dependencies": {
-    "astro": "^7.2.2",
-    "sharp": "^0.35.3"
+    "astro": "^7.4.1",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.0",
-    "typescript": "^5.7.0",
-    "wrangler": "^4.123.0"
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.156.0"
   }
 }
