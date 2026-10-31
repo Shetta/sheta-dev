@@ -62,27 +62,29 @@ function formalShell(title, description, body, height = 640) {
   <desc id="diagram-description">${description}</desc>
   <defs>
     <marker id="formal-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569" />
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
     </marker>
-    <filter id="formal-shadow" x="-15%" y="-15%" width="130%" height="145%">
-      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#0f172a" flood-opacity=".12" />
-    </filter>
+    <pattern id="formal-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#1e293b" stroke-width="1" />
+    </pattern>
     <style>
-      .formal-title { fill: #0f172a; font: 700 30px Arial, sans-serif; }
-      .formal-subtitle { fill: #475569; font: 17px Arial, sans-serif; }
-      .formal-card { stroke: #cbd5e1; stroke-width: 1.5; }
-      .formal-card-title { fill: #0f172a; font: 700 20px Arial, sans-serif; }
-      .formal-card-copy { fill: #334155; font: 16px Arial, sans-serif; }
-      .formal-small { fill: #475569; font: 14px Arial, sans-serif; }
-      .formal-chip { fill: #ffffff; font: 700 15px Arial, sans-serif; }
-      .formal-arrow { fill: none; stroke: #475569; stroke-width: 3; marker-end: url(#formal-arrow); }
-      .formal-dashed { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 8 7; }
-      .formal-lane { fill: none; stroke: #cbd5e1; stroke-width: 2; }
+      .formal-title { fill: #f8fafc; font: 700 29px "DejaVu Sans Mono", monospace; }
+      .formal-subtitle { fill: #94a3b8; font: 16px "DejaVu Sans Mono", monospace; }
+      .formal-panel { fill: #111827; stroke: #334155; stroke-width: 2; }
+      .formal-card-title { fill: #f8fafc; font: 700 19px "DejaVu Sans Mono", monospace; }
+      .formal-card-copy { fill: #cbd5e1; font: 15px "DejaVu Sans Mono", monospace; }
+      .formal-small { fill: #94a3b8; font: 13px "DejaVu Sans Mono", monospace; }
+      .formal-chip { fill: #f8fafc; font: 700 15px "DejaVu Sans Mono", monospace; }
+      .formal-label { fill: #93c5fd; font: 700 13px "DejaVu Sans Mono", monospace; letter-spacing: 1.5px; }
+      .formal-step { fill: #64748b; font: 13px "DejaVu Sans Mono", monospace; }
+      .formal-arrow { fill: none; stroke: #64748b; stroke-width: 2.5; marker-end: url(#formal-arrow); }
+      .formal-dashed { fill: none; stroke: #475569; stroke-width: 2; stroke-dasharray: 8 7; marker-end: url(#formal-arrow); }
+      .formal-lane { fill: none; stroke: #334155; stroke-width: 2; stroke-dasharray: 7 7; }
     </style>
   </defs>
-  <rect width="1200" height="${height}" fill="#f8fafc" />
-  <circle cx="1110" cy="52" r="110" fill="#ede9fe" opacity=".7" />
-  <circle cx="75" cy="${height - 20}" r="125" fill="#cffafe" opacity=".6" />
+  <rect width="1200" height="${height}" fill="#0b1020" />
+  <rect width="1200" height="${height}" fill="url(#formal-grid)" opacity=".55" />
+  <rect width="1200" height="6" fill="#60a5fa" />
   <text x="48" y="52" class="formal-title">${title}</text>
   <text x="48" y="82" class="formal-subtitle">${description}</text>
   ${body}
@@ -171,155 +173,163 @@ const verificationLoop = formalShell(
   'From requirement to formal evidence',
   'A checker evaluates a precise claim. Human review connects the result to the production need.',
   `
-  <g filter="url(#formal-shadow)">
-    <rect x="48" y="145" width="246" height="190" rx="18" fill="#ede9fe" class="formal-card" />
-    <rect x="48" y="145" width="246" height="12" rx="6" fill="#7c3aed" />
-    <circle cx="84" cy="193" r="20" fill="#7c3aed" />
-    <text x="84" y="199" class="formal-chip" text-anchor="middle">1</text>
-    <text x="116" y="199" class="formal-card-title">Requirement</text>
-    <text x="72" y="245" class="formal-card-copy">One logical operation</text>
-    <text x="72" y="271" class="formal-card-copy">must cause at most</text>
-    <text x="72" y="297" class="formal-card-copy">one payment.</text>
+  <rect x="48" y="142" width="240" height="166" rx="10" class="formal-panel" />
+  <rect x="48" y="142" width="240" height="6" fill="#a78bfa" />
+  <rect x="70" y="172" width="34" height="34" rx="5" fill="#7c3aed" />
+  <text x="87" y="195" class="formal-chip" text-anchor="middle">01</text>
+  <text x="120" y="195" class="formal-card-title">Requirement</text>
+  <text x="70" y="242" class="formal-card-copy">One logical operation</text>
+  <text x="70" y="268" class="formal-card-copy">causes at most</text>
+  <text x="70" y="294" class="formal-card-copy">one payment.</text>
 
-    <rect x="334" y="145" width="246" height="190" rx="18" fill="#e0f2fe" class="formal-card" />
-    <rect x="334" y="145" width="246" height="12" rx="6" fill="#0284c7" />
-    <circle cx="370" cy="193" r="20" fill="#0284c7" />
-    <text x="370" y="199" class="formal-chip" text-anchor="middle">2</text>
-    <text x="402" y="199" class="formal-card-title">Model + property</text>
-    <text x="358" y="245" class="formal-card-copy">Encode the permitted</text>
-    <text x="358" y="271" class="formal-card-copy">steps and require</text>
-    <text x="358" y="297" class="formal-card-copy">effects ≤ 1.</text>
+  <rect x="336" y="142" width="240" height="166" rx="10" class="formal-panel" />
+  <rect x="336" y="142" width="240" height="6" fill="#38bdf8" />
+  <rect x="358" y="172" width="34" height="34" rx="5" fill="#0284c7" />
+  <text x="375" y="195" class="formal-chip" text-anchor="middle">02</text>
+  <text x="408" y="195" class="formal-card-title">Model + property</text>
+  <text x="358" y="242" class="formal-card-copy">Encode permitted steps.</text>
+  <text x="358" y="268" class="formal-card-copy">Assert</text>
+  <text x="422" y="268" fill="#7dd3fc" font-family="DejaVu Sans Mono, monospace" font-size="15" font-weight="700">effects ≤ 1</text>
 
-    <rect x="620" y="145" width="246" height="190" rx="18" fill="#d1fae5" class="formal-card" />
-    <rect x="620" y="145" width="246" height="12" rx="6" fill="#059669" />
-    <circle cx="656" cy="193" r="20" fill="#059669" />
-    <text x="656" y="199" class="formal-chip" text-anchor="middle">3</text>
-    <text x="688" y="199" class="formal-card-title">Checker</text>
-    <text x="644" y="245" class="formal-card-copy">Explore states or</text>
-    <text x="644" y="271" class="formal-card-copy">validate a proof</text>
-    <text x="644" y="297" class="formal-card-copy">against the claim.</text>
+  <rect x="624" y="142" width="240" height="166" rx="10" class="formal-panel" />
+  <rect x="624" y="142" width="240" height="6" fill="#34d399" />
+  <rect x="646" y="172" width="34" height="34" rx="5" fill="#059669" />
+  <text x="663" y="195" class="formal-chip" text-anchor="middle">03</text>
+  <text x="696" y="195" class="formal-card-title">Checker</text>
+  <text x="646" y="242" class="formal-card-copy">Explore reachable states</text>
+  <text x="646" y="268" class="formal-card-copy">or validate a proof.</text>
 
-    <rect x="906" y="145" width="246" height="190" rx="18" fill="#fef3c7" class="formal-card" />
-    <rect x="906" y="145" width="246" height="12" rx="6" fill="#d97706" />
-    <circle cx="942" cy="193" r="20" fill="#d97706" />
-    <text x="942" y="199" class="formal-chip" text-anchor="middle">4</text>
-    <text x="974" y="199" class="formal-card-title">Evidence</text>
-    <text x="930" y="245" class="formal-card-copy">A counterexample or</text>
-    <text x="930" y="271" class="formal-card-copy">no violation in the</text>
-    <text x="930" y="297" class="formal-card-copy">checked scope.</text>
-  </g>
+  <rect x="912" y="142" width="240" height="166" rx="10" class="formal-panel" />
+  <rect x="912" y="142" width="240" height="6" fill="#fbbf24" />
+  <rect x="934" y="172" width="34" height="34" rx="5" fill="#d97706" />
+  <text x="951" y="195" class="formal-chip" text-anchor="middle">04</text>
+  <text x="984" y="195" class="formal-card-title">Evidence</text>
+  <text x="934" y="242" class="formal-card-copy">Counterexample, or no</text>
+  <text x="934" y="268" class="formal-card-copy">violation in scope.</text>
 
-  <path d="M294 240 L334 240" class="formal-arrow" />
-  <path d="M580 240 L620 240" class="formal-arrow" />
-  <path d="M866 240 L906 240" class="formal-arrow" />
+  <path d="M288 225H326" class="formal-arrow" />
+  <path d="M576 225H614" class="formal-arrow" />
+  <path d="M864 225H902" class="formal-arrow" />
 
-  <g filter="url(#formal-shadow)">
-    <rect x="196" y="412" width="808" height="112" rx="18" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5" />
-    <circle cx="246" cy="468" r="24" fill="#dc2626" />
-    <text x="246" y="475" class="formal-chip" text-anchor="middle">?</text>
-    <text x="288" y="455" class="formal-card-title">Human review remains necessary</text>
-    <text x="288" y="486" class="formal-card-copy">Does the checked property express the production requirement?</text>
-  </g>
-  <path d="M1029 335 C1029 382, 1004 392, 974 412" class="formal-arrow" />
-  <path d="M226 412 C176 382, 164 348, 174 335" class="formal-arrow" />
+  <rect x="180" y="382" width="840" height="116" rx="10" fill="#111827" stroke="#f59e0b" stroke-width="2" />
+  <text x="214" y="420" fill="#fbbf24" font-family="DejaVu Sans Mono, monospace" font-size="13" font-weight="700" letter-spacing="1.5px">REVIEW BOUNDARY</text>
+  <text x="214" y="456" class="formal-card-title">Does the checked property express the production requirement?</text>
+  <text x="214" y="482" class="formal-small">The checker cannot establish this correspondence.</text>
+
+  <path d="M1032 308V347H1000V372" class="formal-arrow" />
+  <path d="M200 382V347H168V308" class="formal-arrow" />
   `,
-  590
+  550
 );
 
 const duplicateTrace = formalShell(
   'The duplicate-effect trace',
   'Both workers observe an incomplete operation before either worker records completion.',
   `
-  <rect x="72" y="118" width="224" height="46" rx="23" fill="#7c3aed" />
-  <text x="184" y="147" class="formal-chip" text-anchor="middle">Worker A</text>
-  <rect x="352" y="118" width="224" height="46" rx="23" fill="#0284c7" />
-  <text x="464" y="147" class="formal-chip" text-anchor="middle">Worker B</text>
-  <rect x="632" y="118" width="224" height="46" rx="23" fill="#059669" />
-  <text x="744" y="147" class="formal-chip" text-anchor="middle">Payment effect</text>
-  <rect x="912" y="118" width="224" height="46" rx="23" fill="#d97706" />
-  <text x="1024" y="147" class="formal-chip" text-anchor="middle">Completion state</text>
+  <rect x="88" y="122" width="180" height="46" rx="7" fill="#111827" stroke="#a78bfa" stroke-width="2" />
+  <text x="178" y="151" class="formal-chip" text-anchor="middle">Worker A</text>
+  <rect x="346" y="122" width="180" height="46" rx="7" fill="#111827" stroke="#38bdf8" stroke-width="2" />
+  <text x="436" y="151" class="formal-chip" text-anchor="middle">Worker B</text>
+  <rect x="604" y="122" width="214" height="46" rx="7" fill="#111827" stroke="#34d399" stroke-width="2" />
+  <text x="711" y="151" class="formal-chip" text-anchor="middle">effects</text>
+  <rect x="896" y="122" width="216" height="46" rx="7" fill="#111827" stroke="#fbbf24" stroke-width="2" />
+  <text x="1004" y="151" class="formal-chip" text-anchor="middle">completed</text>
 
-  <path d="M184 180 L184 650" class="formal-lane" />
-  <path d="M464 180 L464 650" class="formal-lane" />
-  <path d="M744 180 L744 650" class="formal-lane" />
-  <path d="M1024 180 L1024 650" class="formal-lane" />
+  <path d="M178 168V638" class="formal-lane" />
+  <path d="M436 168V638" class="formal-lane" />
+  <path d="M711 168V638" class="formal-lane" />
+  <path d="M1004 168V638" class="formal-lane" />
 
-  <circle cx="184" cy="220" r="10" fill="#7c3aed" />
-  <rect x="58" y="244" width="252" height="68" rx="14" fill="#ede9fe" class="formal-card" />
-  <text x="184" y="272" class="formal-card-title" text-anchor="middle">Read completion</text>
-  <text x="184" y="297" class="formal-card-copy" text-anchor="middle">returns FALSE</text>
-  <path d="M310 278 C570 278, 760 220, 1012 220" class="formal-dashed" />
+  <text x="40" y="218" class="formal-step">t0</text>
+  <circle cx="178" cy="212" r="7" fill="#a78bfa" />
+  <path d="M188 212H990" class="formal-arrow" />
+  <text x="430" y="198" class="formal-card-copy">read completed</text>
+  <rect x="912" y="226" width="184" height="38" rx="6" fill="#111827" stroke="#fbbf24" />
+  <text x="1004" y="251" class="formal-card-copy" text-anchor="middle">FALSE</text>
 
-  <circle cx="184" cy="356" r="10" fill="#7c3aed" />
-  <path d="M194 356 L728 356" class="formal-arrow" />
-  <rect x="650" y="378" width="188" height="55" rx="14" fill="#d1fae5" class="formal-card" />
-  <text x="744" y="412" class="formal-card-title" text-anchor="middle">effects = 1</text>
+  <text x="40" y="322" class="formal-step">t1</text>
+  <circle cx="178" cy="316" r="7" fill="#a78bfa" />
+  <path d="M188 316H697" class="formal-arrow" />
+  <text x="376" y="302" class="formal-card-copy">apply payment</text>
+  <rect x="628" y="330" width="166" height="38" rx="6" fill="#111827" stroke="#34d399" />
+  <text x="711" y="355" class="formal-card-copy" text-anchor="middle">effects = 1</text>
 
-  <circle cx="464" cy="470" r="10" fill="#0284c7" />
-  <rect x="338" y="494" width="252" height="68" rx="14" fill="#e0f2fe" class="formal-card" />
-  <text x="464" y="522" class="formal-card-title" text-anchor="middle">Read completion</text>
-  <text x="464" y="547" class="formal-card-copy" text-anchor="middle">still returns FALSE</text>
-  <path d="M590 528 C760 528, 840 470, 1012 470" class="formal-dashed" />
+  <text x="40" y="426" class="formal-step">t2</text>
+  <circle cx="436" cy="420" r="7" fill="#38bdf8" />
+  <path d="M446 420H990" class="formal-arrow" />
+  <text x="646" y="406" class="formal-card-copy">read completed</text>
+  <rect x="912" y="434" width="184" height="38" rx="6" fill="#111827" stroke="#fbbf24" />
+  <text x="1004" y="459" class="formal-card-copy" text-anchor="middle">still FALSE</text>
 
-  <circle cx="464" cy="606" r="10" fill="#0284c7" />
-  <path d="M474 606 L728 606" class="formal-arrow" />
-  <rect x="636" y="632" width="216" height="62" rx="14" fill="#fee2e2" stroke="#ef4444" stroke-width="2" />
-  <text x="744" y="660" class="formal-card-title" text-anchor="middle">effects = 2</text>
-  <text x="744" y="683" fill="#b91c1c" font-family="Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle">AtMostOnce violated</text>
+  <rect x="32" y="500" width="1136" height="112" rx="8" fill="#1f131a" stroke="#ef4444" stroke-width="2" />
+  <text x="54" y="528" fill="#f87171" font-family="DejaVu Sans Mono, monospace" font-size="13" font-weight="700" letter-spacing="1.5px">SAFETY VIOLATION</text>
+  <text x="54" y="570" class="formal-step">t3</text>
+  <circle cx="436" cy="564" r="7" fill="#38bdf8" />
+  <path d="M446 564H697" class="formal-arrow" />
+  <text x="506" y="550" class="formal-card-copy">apply payment</text>
+  <rect x="628" y="542" width="166" height="44" rx="6" fill="#2b1118" stroke="#ef4444" stroke-width="2" />
+  <text x="711" y="570" fill="#fca5a5" font-family="DejaVu Sans Mono, monospace" font-size="16" font-weight="700" text-anchor="middle">effects = 2</text>
+  <text x="824" y="570" fill="#fca5a5" font-family="DejaVu Sans Mono, monospace" font-size="15" font-weight="700">AtMostOnce is false</text>
+  <text x="824" y="594" class="formal-small">Completion has not changed.</text>
 
-  <rect x="912" y="632" width="224" height="62" rx="14" fill="#fef3c7" class="formal-card" />
-  <text x="1024" y="660" class="formal-card-title" text-anchor="middle">Completion comes later</text>
-  <text x="1024" y="683" class="formal-small" text-anchor="middle">The duplicate effect exists.</text>
+  <text x="40" y="666" class="formal-step">t4</text>
+  <path d="M188 660H990" class="formal-dashed" />
+  <text x="482" y="646" class="formal-small">mark completion comes too late</text>
   `,
-  730
+  700
 );
 
 const verificationBoundary = formalShell(
   'What the result covers',
   'A formal result is strong inside its stated boundary. Reviewers must examine what remains outside.',
   `
-  <g filter="url(#formal-shadow)">
-    <rect x="48" y="128" width="520" height="408" rx="22" fill="#ecfdf5" stroke="#10b981" stroke-width="2" />
-    <rect x="632" y="128" width="520" height="408" rx="22" fill="#fff7ed" stroke="#f97316" stroke-width="2" />
-  </g>
+  <rect x="48" y="126" width="520" height="396" rx="10" class="formal-panel" />
+  <rect x="48" y="126" width="8" height="396" fill="#34d399" />
+  <text x="82" y="166" fill="#6ee7b7" font-family="DejaVu Sans Mono, monospace" font-size="13" font-weight="700" letter-spacing="1.5px">CHECKER ESTABLISHES</text>
 
-  <circle cx="92" cy="176" r="22" fill="#059669" />
-  <text x="92" y="183" class="formal-chip" text-anchor="middle">✓</text>
-  <text x="128" y="183" class="formal-card-title">Inside the stated result</text>
+  <text x="82" y="214" class="formal-card-title">01  Exact artifact</text>
+  <text x="118" y="240" class="formal-small">Model, source, bytecode, or proof term</text>
+  <path d="M82 260H536" stroke="#263449" stroke-width="1.5" />
 
-  <rect x="80" y="220" width="456" height="64" rx="14" fill="#ffffff" class="formal-card" />
-  <text x="104" y="248" class="formal-card-title">Artifact</text>
-  <text x="104" y="271" class="formal-small">The exact model, code, or proof term that was checked</text>
-  <rect x="80" y="300" width="456" height="64" rx="14" fill="#ffffff" class="formal-card" />
-  <text x="104" y="328" class="formal-card-title">Property</text>
-  <text x="104" y="351" class="formal-small">The named invariant, contract, or theorem</text>
-  <rect x="80" y="380" width="456" height="64" rx="14" fill="#ffffff" class="formal-card" />
-  <text x="104" y="408" class="formal-card-title">Scope and bounds</text>
-  <text x="104" y="431" class="formal-small">The represented operations, failures, values, and sizes</text>
-  <rect x="80" y="460" width="456" height="52" rx="14" fill="#d1fae5" />
-  <text x="308" y="492" fill="#065f46" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">Counterexample or checked claim</text>
+  <text x="82" y="304" class="formal-card-title">02  Named property</text>
+  <text x="118" y="330" class="formal-small">Invariant, contract, or theorem</text>
+  <path d="M82 350H536" stroke="#263449" stroke-width="1.5" />
 
-  <circle cx="676" cy="176" r="22" fill="#ea580c" />
-  <text x="676" y="183" class="formal-chip" text-anchor="middle">!</text>
-  <text x="712" y="183" class="formal-card-title">Outside the stated result</text>
+  <text x="82" y="394" class="formal-card-title">03  Stated scope</text>
+  <text x="118" y="420" class="formal-small">Bounds, operations, failures, assumptions</text>
+  <path d="M82 440H536" stroke="#263449" stroke-width="1.5" />
 
-  <rect x="664" y="220" width="456" height="64" rx="14" fill="#ffffff" class="formal-card" />
-  <text x="688" y="248" class="formal-card-title">Theorem selection</text>
-  <text x="688" y="271" class="formal-small">Whether the property expresses the intended requirement</text>
-  <rect x="664" y="300" width="456" height="64" rx="14" fill="#ffffff" class="formal-card" />
-  <text x="688" y="328" class="formal-card-title">Production correspondence</text>
-  <text x="688" y="351" class="formal-small">Whether the deployed code implements the checked artifact</text>
-  <rect x="664" y="380" width="456" height="64" rx="14" fill="#ffffff" class="formal-card" />
-  <text x="688" y="408" class="formal-card-title">Omitted behavior</text>
-  <text x="688" y="431" class="formal-small">Failures, timing, and external semantics absent from the model</text>
-  <rect x="664" y="460" width="456" height="52" rx="14" fill="#ffedd5" />
-  <text x="892" y="492" fill="#9a3412" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">Evidence that still needs review</text>
+  <rect x="82" y="466" width="454" height="34" rx="5" fill="#0f2d28" stroke="#34d399" />
+  <text x="309" y="488" fill="#6ee7b7" font-family="DejaVu Sans Mono, monospace" font-size="14" font-weight="700" text-anchor="middle">counterexample or checked claim</text>
 
-  <rect x="198" y="574" width="804" height="76" rx="18" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5" />
-  <text x="600" y="605" class="formal-card-title" text-anchor="middle">Human review connects both sides</text>
-  <text x="600" y="632" class="formal-card-copy" text-anchor="middle">State the assumptions, explain the abstraction, and inspect the production boundary.</text>
+  <rect x="632" y="126" width="520" height="396" rx="10" class="formal-panel" />
+  <rect x="1144" y="126" width="8" height="396" fill="#f59e0b" />
+  <text x="666" y="166" fill="#fbbf24" font-family="DejaVu Sans Mono, monospace" font-size="13" font-weight="700" letter-spacing="1.5px">ENGINEERS MUST JUSTIFY</text>
+
+  <text x="666" y="214" class="formal-card-title">01  Theorem selection</text>
+  <text x="702" y="240" class="formal-small">Does the property express the requirement?</text>
+  <path d="M666 260H1120" stroke="#263449" stroke-width="1.5" />
+
+  <text x="666" y="304" class="formal-card-title">02  Production mapping</text>
+  <text x="702" y="330" class="formal-small">Does deployed code implement the artifact?</text>
+  <path d="M666 350H1120" stroke="#263449" stroke-width="1.5" />
+
+  <text x="666" y="394" class="formal-card-title">03  Omitted behavior</text>
+  <text x="702" y="420" class="formal-small">Failures, time, and external service semantics</text>
+  <path d="M666 440H1120" stroke="#263449" stroke-width="1.5" />
+
+  <rect x="666" y="466" width="454" height="34" rx="5" fill="#33240b" stroke="#f59e0b" />
+  <text x="893" y="488" fill="#fbbf24" font-family="DejaVu Sans Mono, monospace" font-size="14" font-weight="700" text-anchor="middle">evidence that still needs review</text>
+
+  <path d="M568 324H622" stroke="#60a5fa" stroke-width="3" />
+  <rect x="586" y="310" width="18" height="28" fill="#0b1020" />
+  <text x="595" y="330" fill="#93c5fd" font-family="DejaVu Sans Mono, monospace" font-size="18" font-weight="700" text-anchor="middle">≠</text>
+
+  <rect x="184" y="564" width="832" height="62" rx="8" fill="#111827" stroke="#60a5fa" stroke-width="2" />
+  <text x="600" y="590" class="formal-card-title" text-anchor="middle">Human review connects the result to production.</text>
+  <text x="600" y="613" class="formal-small" text-anchor="middle">State assumptions. Explain abstractions. Test the boundary.</text>
   `,
-  690
+  660
 );
 
 await Promise.all([

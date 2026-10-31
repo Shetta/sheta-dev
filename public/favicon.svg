@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#111" />
-  <text x="32" y="41" fill="#fff" font-family="monospace" font-size="28" text-anchor="middle">AS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="favicon-title">
+  <title id="favicon-title">Ahmed Sheta</title>
+  <rect width="64" height="64" rx="14" fill="#0f172a" />
+  <rect x="7" y="7" width="50" height="50" rx="10" fill="#111827" stroke="#475569" stroke-width="2" />
+  <circle cx="49" cy="15" r="5" fill="#60a5fa" />
+  <text x="32" y="41" fill="#f8fafc" font-family="DejaVu Sans Mono, monospace" font-size="25" font-weight="700" text-anchor="middle">AS</text>
 </svg>

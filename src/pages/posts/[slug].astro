@@ -22,7 +22,7 @@ const nextPost = post.data.nextPost ? postsById.get(post.data.nextPost) : undefi
 const published = post.data.published.toISOString().slice(0, 10);
 const updated = post.data.updated?.toISOString().slice(0, 10);
 const canonicalUrl = new URL(`/posts/${post.id}/`, Astro.site).toString();
-const postImage = post.data.image ?? `/social/${post.id}.png`;
+const postImage = post.data.image ?? `/social/v2/${post.id}.png`;
 const prose = (post.body ?? '').replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '');
 const readingMinutes = Math.max(1, Math.ceil(prose.trim().split(/\s+/).length / 220));
 const toc = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
