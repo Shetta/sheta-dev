@@ -16,6 +16,11 @@ Formal verification helps with one part of this problem: it turns a claim into a
 
 When plausible code becomes cheap, the bottleneck moves from implementation to specification. Engineers must define behavior well enough to reject the wrong implementation.
 
+<figure class="architecture-figure formal-figure">
+  <img src="/diagrams/formal-verification-loop.svg" width="1200" height="590" alt="Flow from a production requirement through a formal model and checker to evidence, with human review connecting the evidence to the original requirement." loading="lazy" decoding="async" />
+  <figcaption>A checker evaluates a formal claim. A reviewer must still connect that claim to the production requirement.</figcaption>
+</figure>
+
 ## Plausible code is not evidence
 
 Consider a worker that charges a payment and records completion:
@@ -147,6 +152,11 @@ w2 increments effects to 2
 This is more useful than saying that concurrency is difficult. The trace identifies the permitted steps that violate `AtMostOnce`.
 
 TLC 2.17 generated 16 states and found 13 distinct states. It reported the invariant violation at depth 5.
+
+<figure class="architecture-figure formal-figure">
+  <img src="/diagrams/duplicate-effect-trace.svg" width="1200" height="730" alt="Timeline showing Worker A and Worker B reading an incomplete operation before either records completion, which causes the payment effect count to reach two." loading="lazy" decoding="async" />
+  <figcaption>Both workers apply the effect before either records completion, so <code>effects</code> reaches 2.</figcaption>
+</figure>
 
 It is also a bounded result. TLC checks the finite instance supplied in the model, not every possible deployment size. The distinction between a TLA+ specification and a finite TLC model is explicit in the [TLA+ documentation](https://lamport.azurewebsites.net/tla/model-popup.html).
 
@@ -319,6 +329,11 @@ AI can help construct the derivation. It does not collapse the three questions i
 
 Even the right property over the right model leaves a correspondence problem.
 
+<figure class="architecture-figure formal-figure">
+  <img src="/diagrams/verification-boundary.svg" width="1200" height="690" alt="Comparison of what a formal result covers, including the artifact and property, with what remains outside, including theorem selection and production correspondence." loading="lazy" decoding="async" />
+  <figcaption>The result covers the checked artifact and assumptions. It does not establish omitted behavior or model-to-production correspondence.</figcaption>
+</figure>
+
 The model may treat an operation as atomic while the implementation uses two database calls. It may assume linearizable conditional writes while the selected storage operation offers weaker behavior. It may model a payment provider as remembering idempotency keys forever when the provider expires them. It may omit cancellation, clock movement, malformed input, quota enforcement, or an operator replaying a dead-letter queue.
 
 None of this makes the model useless. A small model is useful because it omits details. The author must state which details the model abstracts and why the abstraction preserves the property under discussion.
@@ -397,5 +412,4 @@ It still cannot choose the theorem for us.
 4. Dafny: [Getting started: preconditions and postconditions](https://dafny.org/latest/OnlineTutorial/guide)
 5. Lean: [The kernel](https://lean-lang.org/doc/reference/latest/Elaboration-and-Compilation/#the-kernel)
 6. Lean: [Validating a Lean proof](https://lean-lang.org/doc/reference/latest/ValidatingProofs/)
-
 

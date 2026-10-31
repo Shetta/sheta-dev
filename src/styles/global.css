@@ -228,6 +228,16 @@ pre {
   color: var(--muted);
   font-size: .9rem;
 }
+.formal-figure {
+  margin-block: 2.5rem;
+}
+.formal-figure img {
+  border-radius: .85rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .12);
+}
+.formal-figure figcaption {
+  padding-inline: .2rem;
+}
 code { font-family: inherit; }
 :not(pre) > code {
   padding: .1rem .3rem;
@@ -303,6 +313,7 @@ h3:hover .heading-permalink,
   .accessibility-tools button,
   pre,
   :not(pre) > code { border-color: CanvasText; forced-color-adjust: auto; }
+  .formal-figure img { box-shadow: none; }
   .astro-code,
   .astro-code span { color: CanvasText; }
 }
