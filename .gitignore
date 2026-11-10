@@ -3,3 +3,10 @@ dist/
 .astro/
 .DS_Store
 public/social-card.png
+
+# Local Wrangler state, local secrets, and environment files
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

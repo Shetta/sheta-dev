@@ -13,6 +13,8 @@ Open `http://localhost:4321`.
 
 The development command generates the architecture diagrams and social cards before Astro starts.
 
+The `.npmrc` file sets `ignore-scripts=true`. npm does not run install scripts from dependencies, and it does not run `pre` or `post` scripts. Call each step explicitly when you add a script to `package.json`.
+
 ## Build and validation
 
 ```bash
@@ -28,7 +30,22 @@ npm run check:links
 npm run validate:live
 ```
 
-The first command checks external article citations. The second command checks the deployed 404 page, security headers, Markdown negotiation, and canonical headers. GitHub Actions runs these network checks each week.
+The first command checks external article citations. The second command checks the deployed 404 page, security headers, Markdown negotiation, and canonical headers.
+
+## Continuous integration
+
+Two GitHub Actions workflows check the repository:
+
+- `validate.yml` runs `npm run validate` and `npm audit --omit=dev` for each pull request and each push to `main`. Do not add a schedule trigger to this workflow.
+- `weekly-checks.yml` runs the dependency audit and the two network checks each Monday.
+
+GitHub disables a scheduled workflow after 60 days without repository activity. A disabled workflow does not run for pull requests or pushes. The schedule is in a separate file for this reason. Enable the weekly workflow again after a pause:
+
+```bash
+gh workflow enable weekly-checks.yml
+```
+
+Cloudflare deploys each push to `main` and does not wait for these workflows. Merge a pull request only after the `build` check passes.
 
 ## Accessibility
 
