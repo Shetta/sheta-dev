@@ -11,8 +11,16 @@ async function request(path, init) {
   return fetch(new URL(path, origin), { redirect: 'manual', ...init });
 }
 
+// Cloudflare sets cf-mitigated when bot protection answers instead of the Worker.
+function mitigation(response) {
+  const action = response.headers.get('cf-mitigated');
+  return action
+    ? ` (Cloudflare bot protection returned a ${action} to this client. The Worker did not receive the request.)`
+    : '';
+}
+
 const home = await request('/');
-assert(home.status === 200, `home returned ${home.status}`);
+assert(home.status === 200, `home returned ${home.status}${mitigation(home)}`);
 assert(home.headers.has('content-security-policy'), 'home is missing Content-Security-Policy');
 assert(home.headers.has('strict-transport-security'), 'home is missing Strict-Transport-Security');
 assert(home.headers.get('x-frame-options') === 'DENY', 'home is missing X-Frame-Options: DENY');
